@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { ArrowRight, GitBranch, LockKeyhole, Mail, Sparkles, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { startDemoSession } from "@/lib/demo-auth";
+import { startGitHubOAuth } from "../lib/github-auth";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -24,9 +25,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   function handleGitBranch() {
-    setError("GitHub OAuth is ready for API integration. Demo mode will continue with Jordan Davis.");
-    startDemoSession();
-    window.setTimeout(() => router.push("/dashboard"), 450);
+    startGitHubOAuth(mode);
   }
 
   return (
@@ -39,8 +38,8 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       <section className="auth-panel">
         <div className="auth-panel-inner">
           <div className="auth-mobile-brand"><span className="brand-mark"><Sparkles size={16} /></span>pr<span>·</span>sentinel</div>
-          <div className="auth-heading"><span className="drawer-kicker">{isSignUp ? "CREATE WORKSPACE ACCESS" : "WELCOME BACK"}</span><h2>{isSignUp ? "Start reviewing smarter." : "Sign in to your workspace."}</h2><p>{isSignUp ? "Create a demo workspace now. Connect your API when you are ready." : "Use the demo account to explore the full PR Sentinel experience."}</p></div>
-          <button className="github-button" type="button" onClick={handleGitBranch}><GitBranch size={17} />Continue with GitHub <span className="api-ready">API ready</span></button>
+          <div className="auth-heading"><span className="drawer-kicker">{isSignUp ? "CREATE WORKSPACE ACCESS" : "WELCOME BACK"}</span><h2>{isSignUp ? "Start reviewing smarter." : "Sign in to your workspace."}</h2><p>{isSignUp ? "Create a demo workspace now. Connect your API when you are ready." : "Use GitHub OAuth or the demo account to explore the full PR Sentinel experience."}</p></div>
+          <button className="github-button" type="button" onClick={handleGitBranch}><GitBranch size={17} />Continue with GitHub <span className="api-ready">OAuth</span></button>
           <div className="auth-divider"><span>or use email</span></div>
           <form className="auth-form" onSubmit={handleSubmit}>
             {isSignUp && <label><span>Name</span><div className="auth-input"><UserRound size={15} /><input name="name" placeholder="Jordan Davis" required /></div></label>}
@@ -51,7 +50,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
             <button className="primary-button auth-submit" disabled={isSubmitting}>{isSubmitting ? "Opening workspace..." : isSignUp ? "Create demo workspace" : "Sign in to dashboard"}<ArrowRight size={16} /></button>
           </form>
           <p className="auth-switch">{isSignUp ? "Already have access?" : "New to PR Sentinel?"} <a href={isSignUp ? "/sign-in" : "/sign-up"}>{isSignUp ? "Sign in" : "Create an account"}</a></p>
-          <p className="auth-footnote">Demo mode · API integrations can be connected later from Settings.</p>
+          <p className="auth-footnote">OAuth ready · Configure GitHub app credentials to enable live sign-in.</p>
         </div>
       </section>
     </main>

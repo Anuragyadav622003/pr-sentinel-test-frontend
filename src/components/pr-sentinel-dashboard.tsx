@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { endDemoSession, isDemoAuthenticated } from "@/lib/demo-auth";
+import { endDemoSession, getStoredUser, isAuthenticated } from "@/lib/demo-auth";
 import {
   Activity,
   AlertTriangle,
@@ -71,9 +71,14 @@ export default function PRSentinelDashboard() {
   const [isDark, setIsDark] = useState(true);
   const [selectedPr, setSelectedPr] = useState<(typeof pullRequests)[number] | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
+  const currentUser = useMemo(() => getStoredUser() ?? undefined, []);
+  const displayName = currentUser?.name || "Jordan Davis";
+  const firstName = displayName.split(" ")[0] || "Jordan";
+  const avatarLabel = currentUser?.initials || "JD";
+  const roleLabel = currentUser?.provider === "github" ? "GitHub · OAuth" : "Admin · Demo";
 
   useEffect(() => {
-    if (!isDemoAuthenticated()) router.replace("/sign-in");
+    if (!isAuthenticated()) router.replace("/sign-in");
   }, [router]);
 
   const filteredPrs = useMemo(() => pullRequests.filter((pr) => {
@@ -110,7 +115,7 @@ export default function PRSentinelDashboard() {
 
         <div className="sidebar-bottom">
           <div className="health-card"><div className="health-title"><span className="pulse-dot" />All systems operational</div><span>Last checked 2m ago</span></div>
-          <div className="user-row"><div className="user-avatar">JD</div><div className="user-copy"><strong>Jordan Davis</strong><span>Admin · Demo</span></div><button className="icon-button" aria-label="Sign out" onClick={() => { endDemoSession(); router.replace("/sign-in"); }}><MoreHorizontal size={18} /></button></div>
+          <div className="user-row"><div className="user-avatar">{avatarLabel}</div><div className="user-copy"><strong>{displayName}</strong><span>{roleLabel}</span></div><button className="icon-button" aria-label="Sign out" onClick={() => { endDemoSession(); router.replace("/sign-in"); }}><MoreHorizontal size={18} /></button></div>
         </div>
       </aside>
 
@@ -122,7 +127,7 @@ export default function PRSentinelDashboard() {
         </header>
 
         <div className="content-wrap">
-          <section className="page-heading"><div><div className="eyebrow"><span className="eyebrow-line" />OVERVIEW</div><h1>Good morning, Jordan <span className="wave">✦</span></h1><p>Here&apos;s what&apos;s happening across your repositories.</p></div><button className="primary-button"><GitPullRequest size={16} />View all pull requests</button></section>
+          <section className="page-heading"><div><div className="eyebrow"><span className="eyebrow-line" />OVERVIEW</div><h1>Good morning, {firstName} <span className="wave">✦</span></h1><p>Here&apos;s what&apos;s happening across your repositories.</p></div><button className="primary-button"><GitPullRequest size={16} />View all pull requests</button></section>
 
           <section className="stats-grid" aria-label="Workspace metrics">
             <article className="stat-card"><div className="stat-head"><span>Open pull requests</span><GitPullRequest size={16} /></div><div className="stat-value">24</div><div className="stat-foot positive"><ArrowUpRight size={14} />12.5% <span>vs last week</span></div></article>
