@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { endDemoSession, isDemoAuthenticated } from "@/lib/demo-auth";
 import {
   Activity,
   AlertTriangle,
@@ -14,6 +16,7 @@ import {
   Clock3,
   Code2,
   GitPullRequest,
+  GitBranch,
   LayoutDashboard,
   Menu,
   MoreHorizontal,
@@ -61,12 +64,17 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function PRSentinelDashboard() {
+  const router = useRouter();
   const [activeNav, setActiveNav] = useState("Overview");
   const [query, setQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState("All risks");
   const [isDark, setIsDark] = useState(true);
   const [selectedPr, setSelectedPr] = useState<(typeof pullRequests)[number] | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
+
+  useEffect(() => {
+    if (!isDemoAuthenticated()) router.replace("/sign-in");
+  }, [router]);
 
   const filteredPrs = useMemo(() => pullRequests.filter((pr) => {
     const matchesQuery = `${pr.title} ${pr.repo}`.toLowerCase().includes(query.toLowerCase());
@@ -102,7 +110,7 @@ export default function PRSentinelDashboard() {
 
         <div className="sidebar-bottom">
           <div className="health-card"><div className="health-title"><span className="pulse-dot" />All systems operational</div><span>Last checked 2m ago</span></div>
-          <div className="user-row"><div className="user-avatar">JD</div><div className="user-copy"><strong>Jordan Davis</strong><span>Admin</span></div><MoreHorizontal size={18} /></div>
+          <div className="user-row"><div className="user-avatar">JD</div><div className="user-copy"><strong>Jordan Davis</strong><span>Admin · Demo</span></div><button className="icon-button" aria-label="Sign out" onClick={() => { endDemoSession(); router.replace("/sign-in"); }}><MoreHorizontal size={18} /></button></div>
         </div>
       </aside>
 
@@ -134,7 +142,7 @@ export default function PRSentinelDashboard() {
         </div>
       </main>
 
-      {selectedPr && <div className="drawer-backdrop" onClick={() => setSelectedPr(null)}><aside className="pr-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-header"><div><span className="drawer-kicker">PULL REQUEST {selectedPr.id}</span><h2>{selectedPr.title}</h2></div><button className="icon-button" onClick={() => setSelectedPr(null)} aria-label="Close pull request details"><X size={18} /></button></div><div className="drawer-repo"><span className={`repo-dot ${selectedPr.color}`} />{selectedPr.repo}<span>·</span>{selectedPr.time}</div><div className="drawer-score"><div><span>Risk score</span><strong>{selectedPr.score}<small>/100</small></strong></div><RiskBadge risk={selectedPr.risk} /></div><div className="drawer-section"><span className="drawer-label">Review summary</span><p>This change touches authentication and request handling paths. Review the rate limit fallback behavior and confirm errors do not expose internal headers.</p></div><div className="drawer-section"><span className="drawer-label">Checks</span><div className="check-row"><Check size={15} />Build and typecheck<span>Passed</span></div><div className="check-row"><Check size={15} />Security scan<span>Passed</span></div><div className="check-row warning"><AlertTriangle size={15} />Review coverage<span>Needs attention</span></div></div><button className="primary-button drawer-button"><GitPullRequest size={16} />Open in GitHub</button></aside></div>}
+      {selectedPr && <div className="drawer-backdrop" onClick={() => setSelectedPr(null)}><aside className="pr-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-header"><div><span className="drawer-kicker">PULL REQUEST {selectedPr.id}</span><h2>{selectedPr.title}</h2></div><button className="icon-button" onClick={() => setSelectedPr(null)} aria-label="Close pull request details"><X size={18} /></button></div><div className="drawer-repo"><span className={`repo-dot ${selectedPr.color}`} />{selectedPr.repo}<span>·</span>{selectedPr.time}</div><div className="drawer-score"><div><span>Risk score</span><strong>{selectedPr.score}<small>/100</small></strong></div><RiskBadge risk={selectedPr.risk} /></div><div className="drawer-section"><span className="drawer-label">Review summary</span><p>This change touches authentication and request handling paths. Review the rate limit fallback behavior and confirm errors do not expose internal headers.</p></div><div className="drawer-section"><span className="drawer-label">Checks</span><div className="check-row"><Check size={15} />Build and typecheck<span>Passed</span></div><div className="check-row"><Check size={15} />Security scan<span>Passed</span></div><div className="check-row warning"><AlertTriangle size={15} />Review coverage<span>Needs attention</span></div></div><button className="primary-button drawer-button" onClick={() => router.push(`/dashboard/pull-requests/${selectedPr.id.slice(1)}`)}><GitPullRequest size={16} />Open review workspace</button><button className="github-button drawer-github-button" onClick={() => setSelectedPr(null)}><GitBranch size={16} />Open in GitHub <span className="api-ready">API ready</span></button></aside></div>}
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import PRSentinelDashboard from "@/components/pr-sentinel-dashboard";
+import AuthGate from "@/components/auth-gate";
 
 export default function Home() {
-  return <PRSentinelDashboard />;
+  return <AuthGate />;
 }
