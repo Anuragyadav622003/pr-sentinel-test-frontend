@@ -38,7 +38,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       <section className="auth-panel">
         <div className="auth-panel-inner">
           <div className="auth-mobile-brand"><span className="brand-mark"><Sparkles size={16} /></span>pr<span>·</span>sentinel</div>
-          <div className="auth-heading"><span className="drawer-kicker">{isSignUp ? "CREATE WORKSPACE ACCESS" : "WELCOME BACK"}</span><h2>{isSignUp ? "Start reviewing smarter." : "Sign in to your workspace."}</h2><p>{isSignUp ? "Create a demo workspace now. Connect your API when you are ready." : "Use GitHub OAuth or the demo account to explore the full PR Sentinel experience."}</p></div>
+          <div className="auth-heading"><span className="drawer-kicker">{isSignUp ? "CREATE WORKSPACE ACCESS" : "WELCOME BACK"}</span><h2>{isSignUp ? "Create your GitHub workspace." : "Sign in to your workspace."}</h2><p>{isSignUp ? "Use GitHub to create your account and start reviewing pull requests." : "Use GitHub to sign in to your existing PR Sentinel workspace."}</p></div>
           <button className="github-button" type="button" onClick={handleGitBranch}><GitBranch size={17} />Continue with GitHub <span className="api-ready">OAuth</span></button>
           <div className="auth-divider"><span>or use email</span></div>
           <form className="auth-form" onSubmit={handleSubmit}>

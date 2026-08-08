@@ -2,23 +2,35 @@
 
 import { startGitHubSession } from "./demo-auth";
 
+const GITHUB_OAUTH_URL = "https://github.com/login/oauth/authorize";
+const DEFAULT_CALLBACK_PATH = "/auth/github/complete";
+
 export function startGitHubOAuth(mode: "sign-in" | "sign-up") {
-  window.location.assign(`/auth/github/complete?mode=${mode}&fallback=demo`);
+  const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+  const redirectUri = process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI || window.location.origin + DEFAULT_CALLBACK_PATH;
+  const scope = "read:user user:email";
+
+  if (!clientId) {
+    window.location.assign(`${DEFAULT_CALLBACK_PATH}?mode=${mode}&error=missing_client_id`);
+    return;
+  }
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope,
+    state: mode,
+  });
+
+  window.location.assign(`${GITHUB_OAUTH_URL}?${params.toString()}`);
 }
 
 export function completeGitHubOAuth(params: URLSearchParams | null) {
   const mode = params?.get("mode") || "sign-in";
-  const fallback = params?.get("fallback") === "demo";
+  const error = params?.get("error");
 
-  if (fallback) {
-    startGitHubSession({
-      name: "Jordan Davis",
-      email: "jordan@acme.dev",
-      initials: "JD",
-      role: "Admin",
-      provider: "github",
-    });
-    return { success: true, mode, fallback: true };
+  if (error) {
+    return { success: false, mode, error };
   }
 
   const login = params?.get("login") || "github-user";
@@ -41,5 +53,5 @@ export function completeGitHubOAuth(params: URLSearchParams | null) {
     provider: "github",
   });
 
-  return { success: true, mode, fallback: false };
+  return { success: true, mode };
 }
