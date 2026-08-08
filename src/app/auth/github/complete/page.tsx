@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { completeGitHubOAuth } from "@/lib/github-auth";
 
-export default function GitHubCompletePage() {
+function GitHubCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -13,7 +13,15 @@ export default function GitHubCompletePage() {
     if (result.success) {
       router.replace("/dashboard");
     }
-  }, [router, searchParams]);
+  }, [router, searchParams]); 
 
   return <div className="route-loading">Finishing GitHub sign-in...</div>;
+}
+
+export default function GitHubCompletePage() {
+  return (
+    <Suspense fallback={<div className="route-loading">Finishing GitHub sign-in...</div>}>
+      <GitHubCompleteContent />
+    </Suspense>
+  );
 }

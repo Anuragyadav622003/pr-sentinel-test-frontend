@@ -3,7 +3,7 @@
 import { startGitHubSession } from "./demo-auth";
 
 export function startGitHubOAuth(mode: "sign-in" | "sign-up") {
-  window.location.assign(`/api/auth/github?mode=${mode}`);
+  window.location.assign(`/auth/github/complete?mode=${mode}&fallback=demo`);
 }
 
 export function completeGitHubOAuth(params: URLSearchParams | null) {
