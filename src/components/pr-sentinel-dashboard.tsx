@@ -321,13 +321,16 @@ export default function PRSentinelDashboard() {
               <Bell size={17} />
               <span className="notification-dot" />
             </button>
-            <button
-              className="icon-button"
-              aria-label="Toggle theme"
-              onClick={() => setIsDark(!isDark)}
-            >
-              {isDark ? <Sun size={17} /> : <Moon size={17} />}
-            </button>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={isDark}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={() => setIsDark((current) => !current)}
+          >
+            {isDark ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
           </div>
         </header>
 
