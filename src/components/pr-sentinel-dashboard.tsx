@@ -1,531 +1,138 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
-  logout,
-  getStoredUser,
-  isAuthenticated,
-  getDisplayName,
-  getInitials,
-} from "@/lib/auth";
-import {
-  Activity,
-  AlertTriangle,
-  ArrowDownRight,
-  ArrowUpRight,
-  Bell,
-  BookOpen,
-  Check,
-  ChevronDown,
-  CircleDot,
-  Clock3,
+  CheckCircle2,
   Code2,
   GitPullRequest,
-  GitBranch,
-  LayoutDashboard,
-  Menu,
-  MoreHorizontal,
-  Moon,
-  Search,
-  Settings2,
+  Github,
   ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  Sun,
-  Terminal,
-  X,
+  XCircle,
 } from "lucide-react";
+import DashboardShell from "@/components/dashboard-shell";
+import PrTable from "@/components/pr-table";
+import { EmptyState, ErrorState, Skeleton, SkeletonRows } from "@/components/ui/states";
+import { useDashboardStats } from "@/lib/api/hooks";
+import { getStoredUser, getDisplayName } from "@/lib/auth";
 
-const pullRequests: Array<{
-  id: string;
-  title: string;
-  repo: string;
-  author: string;
-  time: string;
-  status: string;
-  risk: string;
-  score: number;
-  files: number;
-  comments: number;
-  color: string;
-}> = [];
-
-const activities: Array<{
-  icon: typeof ShieldCheck;
-  title: string;
-  detail: string;
-  time: string;
-  tone: string;
-}> = [];
-
-const navItems = [
-  { label: "Overview", icon: LayoutDashboard },
-  { label: "Pull requests", icon: GitPullRequest },
-  { label: "Findings", icon: ShieldCheck },
-  { label: "Repositories", icon: Code2 },
-];
-
-function RiskBadge({ risk }: { risk: string }) {
-  const tone = risk === "High" ? "danger" : risk === "Medium" ? "warning" : "success";
+function StatCard({
+  label,
+  value,
+  icon,
+  foot,
+  loading,
+}: {
+  label: string;
+  value: React.ReactNode;
+  icon: React.ReactNode;
+  foot: string;
+  loading?: boolean;
+}) {
   return (
-    <span className={`status-badge ${tone}`}>
-      <span className="status-dot" />
-      {risk} risk
-    </span>
+    <article className="stat-card">
+      <div className="stat-head">
+        <span>{label}</span>
+        {icon}
+      </div>
+      <div className="stat-value">{loading ? <Skeleton height={26} width={64} /> : value}</div>
+      <div className="stat-foot">{foot}</div>
+    </article>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const tone =
-    status === "Approved"
-      ? "success"
-      : status === "Changes requested"
-      ? "danger"
-      : "warning";
-  return <span className={`status-badge ${tone}`}>{status}</span>;
 }
 
 export default function PRSentinelDashboard() {
-  const router = useRouter();
-  const [activeNav, setActiveNav] = useState("Overview");
-  const [query, setQuery] = useState("");
-  const [riskFilter, setRiskFilter] = useState("All risks");
-  // Persist theme in localStorage so it survives re-renders and refreshes
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    const saved = window.localStorage.getItem("pr_sentinel_theme");
-    return saved ? saved === "dark" : true;
-  });
-  const [selectedPr, setSelectedPr] = useState<(typeof pullRequests)[number] | null>(null);
-  const [mobileNav, setMobileNav] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  // Track whether we've confirmed auth on the client — avoids SSR false-redirect
-  const [authChecked, setAuthChecked] = useState(false);
+  const { stats, error, isLoading, refresh } = useDashboardStats();
 
-  const currentUser = useMemo(() => getStoredUser(), []);
+  const user = typeof window !== "undefined" ? getStoredUser() : null;
+  const firstName = user ? getDisplayName(user).split(/[\s@]+/)[0] : "there";
 
-  // Guard — only runs client-side after hydration
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace("/sign-in");
-    } else {
-      setAuthChecked(true);
-    }
-  }, [router]);
-
-  // Persist theme preference
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("pr_sentinel_theme", isDark ? "dark" : "light");
-    }
-  }, [isDark]);
-
-  useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMobileNav(false);
-        setUserMenuOpen(false);
-        setSelectedPr(null);
-      }
-    }
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, []);
-
-  const displayName = currentUser ? getDisplayName(currentUser) : "User";
-  const firstName = displayName.split(/[\s@]+/)[0] || "there";
-  const avatarLabel = currentUser ? getInitials(currentUser) : "U";
-  const roleLabel = currentUser?.githubId ? "GitHub · OAuth" : "Email · Password";
-
-  async function handleSignOut() {
-    await logout();
-    router.replace("/sign-in");
-  }
-
-  const filteredPrs = useMemo(
-    () =>
-      pullRequests.filter((pr) => {
-        const matchesQuery = `${pr.title} ${pr.repo}`
-          .toLowerCase()
-          .includes(query.toLowerCase());
-        const matchesRisk = riskFilter === "All risks" || pr.risk === riskFilter;
-        return matchesQuery && matchesRisk;
-      }),
-    [query, riskFilter]
-  );
-
-  // Don't render the dashboard content until we've confirmed auth client-side
-  if (!authChecked) {
-    return <div className="route-loading">Loading workspace…</div>;
-  }
+  const connected = stats?.connected;
 
   return (
-    <div className={isDark ? "app-shell" : "app-shell light-mode"}>
-      <aside className={`sidebar ${mobileNav ? "sidebar-open" : ""}`}>
-        <div className="brand-row">
-          <div className="brand-mark">
-            <Sparkles size={16} strokeWidth={2.5} />
-          </div>
-          <span className="brand-name">
-            pr<span>·</span>sentinel
-          </span>
-          <button
-            className="icon-button close-mobile"
-            aria-label="Close navigation"
-            onClick={() => setMobileNav(false)}
-          >
-            <X />
-          </button>
+    <DashboardShell title="Dashboard" eyebrow="OVERVIEW">
+      <div className="data-header">
+        <div>
+          <h1 className="text-balance">Welcome back, {firstName}</h1>
+          <p className="text-pretty">
+            Here&apos;s the current state of automated reviews across your connected
+            repositories.
+          </p>
         </div>
-
-        <div className="workspace-switcher">
-          <div className="workspace-avatar">A</div>
-          <div className="workspace-copy">
-            <strong>Workspace</strong>
-            <span>Connect GitHub to begin</span>
-          </div>
-          <ChevronDown size={15} />
+        <div className="header-actions">
+          <Link className="secondary-button" href="/dashboard/pull-requests">
+            <GitPullRequest size={15} />
+            View pull requests
+          </Link>
         </div>
+      </div>
 
-        <nav className="nav-list" aria-label="Main navigation">
-          <p className="nav-label">Workspace</p>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.label}
-                className={`nav-item ${activeNav === item.label ? "active" : ""}`}
-                onClick={() => {
-                  setActiveNav(item.label);
-                  setMobileNav(false);
-                }}
-              >
-                <Icon size={17} />
-                <span>{item.label}</span>
-
-              </button>
-            );
-          })}
-          <p className="nav-label nav-label-spaced">Manage</p>
-          <button
-            className={`nav-item ${activeNav === "Activity" ? "active" : ""}`}
-            onClick={() => setActiveNav("Activity")}
-          >
-            <Activity size={17} />
-            <span>Activity</span>
-          </button>
-          <button
-            className={`nav-item ${activeNav === "Settings" ? "active" : ""}`}
-            onClick={() => setActiveNav("Settings")}
-          >
-            <Settings2 size={17} />
-            <span>Settings</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="health-card">
-            <div className="health-title">
-              <span className="pulse-dot" />
-              GitHub connection required
-            </div>
-            <span>Connect a workspace to enable monitoring</span>
-          </div>
-          <div className="user-row">
-            <div className="user-avatar">{avatarLabel}</div>
-            <div className="user-copy">
-              <strong>{displayName}</strong>
-              <span>{roleLabel}</span>
-            </div>
-            {/* Three-dot opens a small menu — does NOT sign the user out */}
-            <div className="user-menu-wrap">
-              <button
-                className="icon-button"
-                aria-label="User menu"
-                title="User menu"
-                onClick={() => setUserMenuOpen((v) => !v)}
-              >
-                <MoreHorizontal size={18} />
-              </button>
-              {userMenuOpen && (
-                <div
-                  className="user-menu"
-                  style={{
-                    position: "absolute",
-                    bottom: "calc(100% + 6px)",
-                    right: 0,
-                    background: "var(--surface-2, #1e1e2e)",
-                    border: "1px solid var(--border, #2e2e3e)",
-                    borderRadius: 8,
-                    padding: "4px 0",
-                    minWidth: 140,
-                    zIndex: 100,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-                  }}
-                >
-                  <button
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      width: "100%",
-                      padding: "8px 14px",
-                      background: "none",
-                      border: "none",
-                      color: "var(--text-danger, #f87171)",
-                      cursor: "pointer",
-                      fontSize: 13,
-                      textAlign: "left",
-                    }}
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      handleSignOut();
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <header className="topbar">
-          <button
-            className="icon-button mobile-menu"
-            aria-label="Open navigation"
-            onClick={() => setMobileNav(true)}
-          >
-            <Menu />
-          </button>
-          <div className="breadcrumbs">
-            <span>Workspace</span>
-            <span className="crumb-separator">/</span>
-            <strong>{activeNav}</strong>
-          </div>
-          <div className="topbar-actions">
-            <div className="search-command">
-              <Search size={16} />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search PRs…"
-                aria-label="Search pull requests"
-              />
-              <kbd>⌘ K</kbd>
-            </div>
-            <button className="icon-button" aria-label="Notifications">
-              <Bell size={17} />
-              <span className="notification-dot" />
-            </button>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            aria-pressed={isDark}
-            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            onClick={() => setIsDark((current) => !current)}
-          >
-            {isDark ? <Sun size={17} /> : <Moon size={17} />}
-          </button>
-          </div>
-        </header>
-
-        <div className="content-wrap">
-          <section className="page-heading">
-            <div>
-              <div className="eyebrow">
-                <span className="eyebrow-line" />
-                OVERVIEW
-              </div>
-              <h1>
-                Good morning, {firstName} <span className="wave">✦</span>
-              </h1>
-              <p>Here&apos;s what&apos;s happening across your repositories.</p>
-            </div>
-            <button className="primary-button" onClick={() => setActiveNav("Pull requests")}>
-              <GitPullRequest size={16} />
-              View all pull requests
-            </button>
-          </section>
-
+      {error ? (
+        <ErrorState error={error} onRetry={refresh} resourceLabel="dashboard" />
+      ) : (
+        <>
           <section className="stats-grid" aria-label="Workspace metrics">
-            <article className="stat-card">
-              <div className="stat-head"><span>Open pull requests</span><GitPullRequest size={16} /></div>
-              <div className="stat-value">—</div>
-              <div className="stat-foot"><span>Connect GitHub to load data</span></div>
-            </article>
-            <article className="stat-card">
-              <div className="stat-head"><span>Avg. review time</span><Clock3 size={16} /></div>
-              <div className="stat-value">—</div>
-              <div className="stat-foot"><span>Awaiting workspace data</span></div>
-            </article>
-            <article className="stat-card">
-              <div className="stat-head"><span>Risk score</span><ShieldCheck size={16} /></div>
-              <div className="stat-value">—</div>
-              <div className="stat-foot"><span>Awaiting review history</span></div>
-            </article>
-            <article className="stat-card">
-              <div className="stat-head"><span>Review coverage</span><CircleDot size={16} /></div>
-              <div className="stat-value">—</div>
-              <div className="stat-foot"><span>Awaiting review history</span></div>
-            </article>
+            <StatCard
+              label="GitHub"
+              loading={isLoading}
+              value={connected ? "Connected" : "Not connected"}
+              icon={<Github size={16} />}
+              foot={connected ? "Installation active" : "Connect to begin"}
+            />
+            <StatCard
+              label="Repositories"
+              loading={isLoading}
+              value={stats?.repositoryCount ?? 0}
+              icon={<Code2 size={16} />}
+              foot="Monitored repositories"
+            />
+            <StatCard
+              label="Pull requests"
+              loading={isLoading}
+              value={stats?.pullRequestCount ?? 0}
+              icon={<GitPullRequest size={16} />}
+              foot="Tracked by PR Sentinel"
+            />
+            <StatCard
+              label="Reviewed"
+              loading={isLoading}
+              value={stats?.reviewedCount ?? 0}
+              icon={<CheckCircle2 size={16} />}
+              foot="Completed AI reviews"
+            />
+            <StatCard
+              label="Failed"
+              loading={isLoading}
+              value={stats?.failedCount ?? 0}
+              icon={<XCircle size={16} />}
+              foot="Require attention"
+            />
           </section>
 
-          <section className="dashboard-grid">
-            <article className="panel activity-panel">
-              <div className="panel-header">
-                <div><h2>Review activity</h2><p>Pull request volume and review velocity</p></div>
-                <button className="select-button">Last 7 days <ChevronDown size={14} /></button>
-              </div>
-              <div className="chart-wrap empty-chart" role="status" aria-live="polite">
-                <Activity size={24} />
-                <strong>No review activity yet</strong>
-                <span>Connect a GitHub workspace to populate this chart.</span>
-              </div>
-            </article>
-
-            <article className="panel recent-panel">
-              <div className="panel-header">
-                <div><h2>Recent activity</h2><p>Latest workspace events</p></div>
-                <button className="text-button">View all <ArrowUpRight size={14} /></button>
-              </div>
-              <div className="activity-list">
-                {activities.length === 0 ? (
-                  <div className="empty-state compact">
-                    <Activity size={22} />
-                    <strong>No activity yet</strong>
-                    <span>Workspace events will appear after a GitHub connection is configured.</span>
-                  </div>
-                ) : activities.map((a) => {
-                  const Icon = a.icon;
-                  return (
-                    <div className="activity-item" key={a.title}>
-                      <div className={`activity-icon ${a.tone}`}><Icon size={15} /></div>
-                      <div className="activity-copy"><strong>{a.title}</strong><span>{a.detail}</span></div>
-                      <time>{a.time}</time>
-                    </div>
-                  );
-                })}
-              </div>
-            </article>
+          <section className="detail-card">
+            <h2>Recent pull requests</h2>
+            <p className="card-sub">The most recently updated pull requests in your workspace.</p>
+            {isLoading ? (
+              <SkeletonRows rows={4} />
+            ) : !connected ? (
+              <EmptyState
+                icon={<Github size={18} />}
+                title="Connect GitHub to get started"
+                body="Install the PR Sentinel GitHub App and select repositories to begin receiving automatic pull request reviews."
+                action={{ label: "Connect GitHub", href: "/dashboard/github" }}
+              />
+            ) : !stats || stats.recentPullRequests.length === 0 ? (
+              <EmptyState
+                icon={<GitPullRequest size={18} />}
+                title="No pull requests yet"
+                body="Open a pull request in one of your connected repositories and PR Sentinel will review it automatically."
+                action={{ label: "View repositories", href: "/dashboard/repositories" }}
+              />
+            ) : (
+              <PrTable pullRequests={stats.recentPullRequests} />
+            )}
           </section>
-
-          <section className="panel prs-panel">
-            <div className="panel-header prs-header">
-              <div><h2>Pull requests</h2><p>Prioritized by review risk and urgency</p></div>
-              <div className="filter-row">
-                <div className="filter-search">
-                  <Search size={14} />
-                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter pull requests" />
-                </div>
-                <button className="filter-button"><SlidersHorizontal size={14} />Filters</button>
-              </div>
-            </div>
-            <div className="table-toolbar">
-              <div className="filter-pills">
-                {["All risks", "High", "Medium", "Low"].map((f) => (
-                  <button key={f} className={riskFilter === f ? "selected" : ""} onClick={() => setRiskFilter(f)}>{f}</button>
-                ))}
-              </div>
-              <span className="results-count">{filteredPrs.length} of {pullRequests.length} pull requests</span>
-            </div>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr><th>Pull request</th><th>Repository</th><th>Review status</th><th>Risk</th><th>Score</th><th /></tr>
-                </thead>
-                <tbody>
-                  {filteredPrs.map((pr) => (
-                    <tr
-                      key={pr.id}
-                      tabIndex={0}
-                      onClick={() => setSelectedPr(pr)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedPr(pr);
-                        }
-                      }}
-                      aria-label={`Open ${pr.id} ${pr.title}`}
-                    >
-                      <td>
-                        <div className="pr-title">
-                          <span className="pr-id">{pr.id}</span>
-                          <strong>{pr.title}</strong>
-                          <span className="pr-meta">{pr.author} · {pr.time} · {pr.files} files</span>
-                        </div>
-                      </td>
-                      <td><span className="repo-name"><span className={`repo-dot ${pr.color}`} />{pr.repo}</span></td>
-                      <td><StatusBadge status={pr.status} /></td>
-                      <td><RiskBadge risk={pr.risk} /></td>
-                      <td><span className={`score ${pr.risk.toLowerCase()}`}>{pr.score}</span></td>
-                      <td><MoreHorizontal size={17} className="row-more" /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredPrs.length === 0 && (
-                <div className="empty-state">
-                  <GitPullRequest size={24} />
-                  <strong>{pullRequests.length === 0 ? "No pull requests available" : "No pull requests found"}</strong>
-                  <span>{pullRequests.length === 0 ? "Connect GitHub and select a repository to start reviewing pull requests." : "Try a different search or risk filter."}</span>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <footer className="page-footer">
-            <span>PR Sentinel <strong>v0.1.0</strong></span>
-            <span>Synced moments ago</span>
-            <span className="footer-links"><BookOpen size={14} />Docs <Terminal size={14} />API status</span>
-          </footer>
-        </div>
-      </main>
-
-      {selectedPr && (
-        <div className="drawer-backdrop" onClick={() => setSelectedPr(null)}>
-          <aside className="pr-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
-              <div>
-                <span className="drawer-kicker">PULL REQUEST {selectedPr.id}</span>
-                <h2>{selectedPr.title}</h2>
-              </div>
-              <button className="icon-button" onClick={() => setSelectedPr(null)} aria-label="Close"><X size={18} /></button>
-            </div>
-            <div className="drawer-repo">
-              <span className={`repo-dot ${selectedPr.color}`} />
-              {selectedPr.repo}<span>·</span>{selectedPr.time}
-            </div>
-            <div className="drawer-score">
-              <div><span>Risk score</span><strong>{selectedPr.score}<small>/100</small></strong></div>
-              <RiskBadge risk={selectedPr.risk} />
-            </div>
-            <div className="drawer-section">
-              <span className="drawer-label">Review summary</span>
-              <p>This change touches authentication and request handling paths. Review the rate limit fallback behavior and confirm errors do not expose internal headers.</p>
-            </div>
-            <div className="drawer-section">
-              <span className="drawer-label">Checks</span>
-              <div className="check-row"><Check size={15} />Build and typecheck<span>Passed</span></div>
-              <div className="check-row"><Check size={15} />Security scan<span>Passed</span></div>
-              <div className="check-row warning"><AlertTriangle size={15} />Review coverage<span>Needs attention</span></div>
-            </div>
-            <button
-              className="primary-button drawer-button"
-              onClick={() => router.push(`/dashboard/pull-requests/${selectedPr.id.slice(1)}`)}
-            >
-              <GitPullRequest size={16} />Open review workspace
-            </button>
-            <button className="github-button drawer-github-button" onClick={() => setSelectedPr(null)}>
-              <GitBranch size={16} />Open in GitHub
-            </button>
-          </aside>
-        </div>
+        </>
       )}
-    </div>
+    </DashboardShell>
   );
 }
