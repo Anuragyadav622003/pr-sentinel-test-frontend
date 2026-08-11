@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "Prioritize pull request reviews with risk-aware engineering intelligence.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
