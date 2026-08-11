@@ -61,9 +61,9 @@ const activities: Array<{
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard },
-  { label: "Pull requests", icon: GitPullRequest, count: "24" },
-  { label: "Repositories", icon: Code2, count: "8" },
-  { label: "Security", icon: ShieldCheck, count: "3" },
+  { label: "Pull requests", icon: GitPullRequest },
+  { label: "Findings", icon: ShieldCheck },
+  { label: "Repositories", icon: Code2 },
 ];
 
 function RiskBadge({ risk }: { risk: string }) {
@@ -203,7 +203,7 @@ export default function PRSentinelDashboard() {
               >
                 <Icon size={17} />
                 <span>{item.label}</span>
-                {item.count && <small>{item.count}</small>}
+
               </button>
             );
           })}

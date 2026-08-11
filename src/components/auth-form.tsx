@@ -83,12 +83,10 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
         <div className="auth-signal">
           <div>
             <span className="pulse-dot" />
-            Live review signal
+            Workspace readiness
           </div>
-          <strong>
-            86<span>%</span>
-          </strong>
-          <small>of changes reviewed before merge</small>
+          <strong>0<span>%</span></strong>
+          <small>Connect GitHub to start reviewing changes</small>
         </div>
       </section>
 
