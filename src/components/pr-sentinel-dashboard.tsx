@@ -114,6 +114,18 @@ export default function PRSentinelDashboard() {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileNav(false);
+        setUserMenuOpen(false);
+        setSelectedPr(null);
+      }
+    }
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
   const displayName = currentUser ? getDisplayName(currentUser) : "User";
   const firstName = displayName.split(/[\s@]+/)[0] || "there";
   const avatarLabel = currentUser ? getInitials(currentUser) : "U";
@@ -220,7 +232,7 @@ export default function PRSentinelDashboard() {
               <span>{roleLabel}</span>
             </div>
             {/* Three-dot opens a small menu — does NOT sign the user out */}
-            <div className="user-menu-wrap" style={{ position: "relative" }}>
+            <div className="user-menu-wrap">
               <button
                 className="icon-button"
                 aria-label="User menu"
@@ -324,7 +336,7 @@ export default function PRSentinelDashboard() {
               </h1>
               <p>Here&apos;s what&apos;s happening across your repositories.</p>
             </div>
-            <button className="primary-button">
+            <button className="primary-button" onClick={() => setActiveNav("Pull requests")}>
               <GitPullRequest size={16} />
               View all pull requests
             </button>
@@ -429,7 +441,18 @@ export default function PRSentinelDashboard() {
                 </thead>
                 <tbody>
                   {filteredPrs.map((pr) => (
-                    <tr key={pr.id} onClick={() => setSelectedPr(pr)}>
+                    <tr
+                      key={pr.id}
+                      tabIndex={0}
+                      onClick={() => setSelectedPr(pr)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedPr(pr);
+                        }
+                      }}
+                      aria-label={`Open ${pr.id} ${pr.title}`}
+                    >
                       <td>
                         <div className="pr-title">
                           <span className="pr-id">{pr.id}</span>
