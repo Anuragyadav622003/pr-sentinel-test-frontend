@@ -37,20 +37,27 @@ import {
   X,
 } from "lucide-react";
 
-const pullRequests = [
-  { id: "#1842", title: "Add rate limiting to public API", repo: "acme/api-gateway", author: "JD", time: "18m ago", status: "Review needed", risk: "High", score: 92, files: 14, comments: 3, color: "violet" },
-  { id: "#1839", title: "Refactor billing webhook retries", repo: "acme/payments", author: "AL", time: "42m ago", status: "Changes requested", risk: "Medium", score: 67, files: 8, comments: 7, color: "cyan" },
-  { id: "#1837", title: "Update node runtime to 22.x", repo: "acme/platform", author: "MK", time: "1h ago", status: "Approved", risk: "Low", score: 18, files: 3, comments: 1, color: "amber" },
-  { id: "#1833", title: "Improve checkout empty states", repo: "acme/storefront", author: "SR", time: "2h ago", status: "Review needed", risk: "Medium", score: 54, files: 11, comments: 4, color: "pink" },
-  { id: "#1828", title: "Add audit events for team settings", repo: "acme/console", author: "TW", time: "3h ago", status: "Approved", risk: "Low", score: 12, files: 6, comments: 0, color: "emerald" },
-];
+const pullRequests: Array<{
+  id: string;
+  title: string;
+  repo: string;
+  author: string;
+  time: string;
+  status: string;
+  risk: string;
+  score: number;
+  files: number;
+  comments: number;
+  color: string;
+}> = [];
 
-const activities = [
-  { icon: ShieldCheck, title: "Security scan passed", detail: "acme/platform · #1837", time: "12m", tone: "success" },
-  { icon: AlertTriangle, title: "Risk score increased", detail: "acme/api-gateway · #1842", time: "18m", tone: "warning" },
-  { icon: Check, title: "Review completed", detail: "acme/console · #1828", time: "31m", tone: "success" },
-  { icon: GitPullRequest, title: "New pull request opened", detail: "acme/storefront · #1833", time: "2h", tone: "info" },
-];
+const activities: Array<{
+  icon: typeof ShieldCheck;
+  title: string;
+  detail: string;
+  time: string;
+  tone: string;
+}> = [];
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard },
@@ -175,8 +182,8 @@ export default function PRSentinelDashboard() {
         <div className="workspace-switcher">
           <div className="workspace-avatar">A</div>
           <div className="workspace-copy">
-            <strong>Acme Inc.</strong>
-            <span>Engineering</span>
+            <strong>Workspace</strong>
+            <span>Connect GitHub to begin</span>
           </div>
           <ChevronDown size={15} />
         </div>
@@ -221,9 +228,9 @@ export default function PRSentinelDashboard() {
           <div className="health-card">
             <div className="health-title">
               <span className="pulse-dot" />
-              All systems operational
+              GitHub connection required
             </div>
-            <span>Last checked 2m ago</span>
+            <span>Connect a workspace to enable monitoring</span>
           </div>
           <div className="user-row">
             <div className="user-avatar">{avatarLabel}</div>
@@ -345,23 +352,23 @@ export default function PRSentinelDashboard() {
           <section className="stats-grid" aria-label="Workspace metrics">
             <article className="stat-card">
               <div className="stat-head"><span>Open pull requests</span><GitPullRequest size={16} /></div>
-              <div className="stat-value">24</div>
-              <div className="stat-foot positive"><ArrowUpRight size={14} />12.5% <span>vs last week</span></div>
+              <div className="stat-value">—</div>
+              <div className="stat-foot"><span>Connect GitHub to load data</span></div>
             </article>
             <article className="stat-card">
               <div className="stat-head"><span>Avg. review time</span><Clock3 size={16} /></div>
-              <div className="stat-value">4h 12m</div>
-              <div className="stat-foot positive"><ArrowDownRight size={14} />8.2% <span>vs last week</span></div>
+              <div className="stat-value">—</div>
+              <div className="stat-foot"><span>Awaiting workspace data</span></div>
             </article>
             <article className="stat-card">
               <div className="stat-head"><span>Risk score</span><ShieldCheck size={16} /></div>
-              <div className="stat-value">32<span className="stat-unit">/100</span></div>
-              <div className="stat-foot positive"><ArrowDownRight size={14} />4.8% <span>vs last week</span></div>
+              <div className="stat-value">—</div>
+              <div className="stat-foot"><span>Awaiting review history</span></div>
             </article>
             <article className="stat-card">
               <div className="stat-head"><span>Review coverage</span><CircleDot size={16} /></div>
-              <div className="stat-value">86<span className="stat-unit">%</span></div>
-              <div className="stat-foot positive"><ArrowUpRight size={14} />3.1% <span>vs last week</span></div>
+              <div className="stat-value">—</div>
+              <div className="stat-foot"><span>Awaiting review history</span></div>
             </article>
           </section>
 
@@ -371,27 +378,10 @@ export default function PRSentinelDashboard() {
                 <div><h2>Review activity</h2><p>Pull request volume and review velocity</p></div>
                 <button className="select-button">Last 7 days <ChevronDown size={14} /></button>
               </div>
-              <div className="chart-wrap">
-                <div className="chart-y"><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span></div>
-                <div className="chart-area">
-                  <div className="chart-gridlines"><i /><i /><i /><i /><i /></div>
-                  <div className="bars">
-                    {[23, 31, 27, 38, 28, 35, 24].map((height, i) => (
-                      <div className="bar-group" key={i}>
-                        <div className="bar-stack">
-                          <span className="bar-primary" style={{ height: `${height * 2.05}px` }} />
-                          <span className="bar-secondary" style={{ height: `${height * 0.6}px` }} />
-                        </div>
-                        <small>{["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i]}</small>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="chart-legend">
-                <span><i className="legend-primary" />Opened</span>
-                <span><i className="legend-secondary" />Merged</span>
-                <strong><span className="legend-live" />Live data</strong>
+              <div className="chart-wrap empty-chart" role="status" aria-live="polite">
+                <Activity size={24} />
+                <strong>No review activity yet</strong>
+                <span>Connect a GitHub workspace to populate this chart.</span>
               </div>
             </article>
 
@@ -401,7 +391,13 @@ export default function PRSentinelDashboard() {
                 <button className="text-button">View all <ArrowUpRight size={14} /></button>
               </div>
               <div className="activity-list">
-                {activities.map((a) => {
+                {activities.length === 0 ? (
+                  <div className="empty-state compact">
+                    <Activity size={22} />
+                    <strong>No activity yet</strong>
+                    <span>Workspace events will appear after a GitHub connection is configured.</span>
+                  </div>
+                ) : activities.map((a) => {
                   const Icon = a.icon;
                   return (
                     <div className="activity-item" key={a.title}>
@@ -471,9 +467,9 @@ export default function PRSentinelDashboard() {
               </table>
               {filteredPrs.length === 0 && (
                 <div className="empty-state">
-                  <Search size={24} />
-                  <strong>No pull requests found</strong>
-                  <span>Try a different search or risk filter.</span>
+                  <GitPullRequest size={24} />
+                  <strong>{pullRequests.length === 0 ? "No pull requests available" : "No pull requests found"}</strong>
+                  <span>{pullRequests.length === 0 ? "Connect GitHub and select a repository to start reviewing pull requests." : "Try a different search or risk filter."}</span>
                 </div>
               )}
             </div>

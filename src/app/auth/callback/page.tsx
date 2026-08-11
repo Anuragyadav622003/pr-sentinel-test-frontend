@@ -15,10 +15,13 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const error = searchParams.get("error");
-    const redirect = searchParams.get("redirect") || "/dashboard";
+    const requestedRedirect = searchParams.get("redirect");
+    const redirect = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
+      ? requestedRedirect
+      : "/dashboard";
 
     if (error) {
-      setErrorMsg(decodeURIComponent(error));
+      setErrorMsg(error);
       return;
     }
 
@@ -35,10 +38,14 @@ function AuthCallbackContent() {
 
   if (errorMsg) {
     return (
-      <div className="route-loading">
-        <p style={{ color: "red" }}>{errorMsg}</p>
-        <a href="/sign-in">Back to sign-in</a>
-      </div>
+      <main className="route-loading auth-callback-error" role="alert">
+        <div className="auth-callback-card">
+          <p className="eyebrow">SIGN-IN ERROR</p>
+          <h1>We couldn&apos;t finish connecting your account</h1>
+          <p>{errorMsg}</p>
+          <a className="primary-button" href="/sign-in">Return to sign in</a>
+        </div>
+      </main>
     );
   }
 
