@@ -41,15 +41,17 @@ function StatCard({
 }
 
 export default function PRSentinelDashboard() {
-  const { stats, error, isLoading, refresh } = useDashboardStats();
+  const { stats, error, isLoading, refresh, connectionStatus } = useDashboardStats();
 
   const user = typeof window !== "undefined" ? getStoredUser() : null;
   const firstName = user ? getDisplayName(user).split(/[\s@]+/)[0] : "there";
 
   const connected = stats?.connected;
+  const checkingGitHub = connectionStatus === "unknown";
 
   return (
     <DashboardShell title="Dashboard" eyebrow="OVERVIEW">
+      <div className="page-stack">
       <div className="data-header">
         <div>
           <h1 className="text-balance">Welcome back, {firstName}</h1>
@@ -73,10 +75,22 @@ export default function PRSentinelDashboard() {
           <section className="stats-grid" aria-label="Workspace metrics">
             <StatCard
               label="GitHub"
-              loading={isLoading}
-              value={connected ? "Connected" : "Not connected"}
+              loading={isLoading || checkingGitHub}
+              value={
+                checkingGitHub
+                  ? "Checking…"
+                  : connected
+                    ? "Connected"
+                    : "Not connected"
+              }
               icon={<GitBranch size={16} />}
-              foot={connected ? "Installation active" : "Connect to begin"}
+              foot={
+                checkingGitHub
+                  ? "Verifying installation"
+                  : connected
+                    ? "Installation active"
+                    : "Connect to begin"
+              }
             />
             <StatCard
               label="Repositories"
@@ -108,10 +122,13 @@ export default function PRSentinelDashboard() {
             />
           </section>
 
-          <section className="detail-card">
-            <h2>Recent pull requests</h2>
-            <p className="card-sub">The most recently updated pull requests in your workspace.</p>
-            {isLoading ? (
+          <section className="panel-scroll-card">
+            <div className="panel-scroll-header">
+              <h2>Recent pull requests</h2>
+              <p>The most recently updated pull requests in your workspace.</p>
+            </div>
+            <div className="panel-scroll-body">
+            {isLoading || checkingGitHub ? (
               <SkeletonRows rows={4} />
             ) : !connected ? (
               <EmptyState
@@ -130,9 +147,11 @@ export default function PRSentinelDashboard() {
             ) : (
               <PrTable pullRequests={stats.recentPullRequests} />
             )}
+            </div>
           </section>
         </>
       )}
+      </div>
     </DashboardShell>
   );
 }

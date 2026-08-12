@@ -1,2 +1,3 @@
-import WorkspacePage from "@/components/workspace-pages";
-export default function RepositoriesPage() { return <WorkspacePage kind="repositories" />; }
+import RepositoriesPage from "@/components/repositories-page";
+
+export default RepositoriesPage;

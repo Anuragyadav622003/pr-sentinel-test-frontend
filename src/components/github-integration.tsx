@@ -1,27 +1,53 @@
 "use client";
 
-import { useState } from "react";
 import {
-  AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
-  Github,
+  Loader2,
   RefreshCw,
   Settings2,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
+import { ApiError } from "@/lib/api/client";
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/ui/states";
-import { getInstallUrl, useGitHubInstallation, useRepositories } from "@/lib/api/hooks";
+import { useGitHubConnection } from "@/lib/store";
 
-function beginInstall() {
-  const url = getInstallUrl();
-  if (url) window.location.assign(url);
+function Github({ size = 24, ...props }: { size?: number; [key: string]: unknown }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M12 0C5.37 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.216.694.825.576C20.565 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+    </svg>
+  );
+}
+
+function statusLabel(status: ReturnType<typeof useGitHubConnection>["status"]): string {
+  switch (status) {
+    case "unknown":
+      return "Checking GitHub connection…";
+    case "connecting":
+      return "Connecting GitHub…";
+    case "syncing":
+      return "Syncing repositories…";
+    case "connected":
+      return "GitHub connected";
+    case "error":
+      return "Connection error";
+    default:
+      return "Not connected";
+  }
 }
 
 export default function GitHubIntegration() {
-  const { status, error, isLoading, refresh } = useGitHubInstallation();
-  const repos = useRepositories();
-  const [installUrlMissing] = useState(() => !getInstallUrl());
+  const github = useGitHubConnection();
+  const isBusy = github.status === "connecting" || github.status === "syncing";
 
   return (
     <DashboardShell title="GitHub" eyebrow="INTEGRATION">
@@ -33,9 +59,13 @@ export default function GitHubIntegration() {
             on your account or organization and choose which repositories it can access.
           </p>
         </div>
-        {status?.connected && (
+        {github.connected && (
           <div className="header-actions">
-            <button className="secondary-button" onClick={() => refresh()}>
+            <button
+              className="secondary-button"
+              onClick={() => github.refresh()}
+              disabled={github.isFetching}
+            >
               <RefreshCw size={15} />
               Refresh
             </button>
@@ -43,24 +73,51 @@ export default function GitHubIntegration() {
         )}
       </div>
 
-      {isLoading ? (
-        <SkeletonRows rows={3} />
-      ) : error ? (
-        <ErrorState error={error} onRetry={() => refresh()} resourceLabel="connection status" />
-      ) : status?.connected ? (
-        <ConnectedView
-          accountLogin={status.installation?.accountLogin ?? null}
-          repositoryCount={status.repositoryCount}
-          repos={repos}
+      {github.isChecking ? (
+        <section className="github-hero">
+          <div className="hero-icon">
+            <Loader2 size={22} className="spin" />
+          </div>
+          <div>
+            <h2>Checking GitHub connection…</h2>
+            <p className="text-pretty">Verifying your installation with the backend.</p>
+          </div>
+        </section>
+      ) : github.status === "error" ? (
+        <ErrorState
+          error={
+            typeof github.error === "string"
+              ? new ApiError(0, github.error)
+              : github.error
+                ? new ApiError(
+                    github.error.status,
+                    github.error.message,
+                    github.error.details,
+                  )
+                : new ApiError(0, "Unable to connect GitHub")
+          }
+          onRetry={() => {
+            github.dismissError();
+            github.refresh();
+          }}
+          resourceLabel="GitHub connection"
         />
+      ) : github.connected ? (
+        <ConnectedView github={github} isBusy={isBusy} />
       ) : (
-        <NotConnectedView installUrlMissing={installUrlMissing} />
+        <NotConnectedView github={github} isBusy={isBusy} />
       )}
     </DashboardShell>
   );
 }
 
-function NotConnectedView({ installUrlMissing }: { installUrlMissing: boolean }) {
+function NotConnectedView({
+  github,
+  isBusy,
+}: {
+  github: ReturnType<typeof useGitHubConnection>;
+  isBusy: boolean;
+}) {
   return (
     <section className="github-hero">
       <div className="hero-icon">
@@ -75,84 +132,97 @@ function NotConnectedView({ installUrlMissing }: { installUrlMissing: boolean })
           until a pull request is opened.
         </p>
       </div>
-      {installUrlMissing ? (
-        <div className="inline-notice">
-          <AlertTriangle size={15} />
-          The GitHub App install URL is not configured. Set
-          {" "}
-          <code>NEXT_PUBLIC_GITHUB_APP_INSTALL_URL</code> to enable installation.
-        </div>
-      ) : (
-        <div className="button-row">
-          <button className="primary-button" onClick={beginInstall}>
-            <Github size={16} />
-            Install PR Sentinel GitHub App
-          </button>
-        </div>
-      )}
+      <div className="button-row">
+        <button
+          className="primary-button"
+          onClick={() => void github.startConnect()}
+          disabled={isBusy}
+        >
+          {isBusy ? <Loader2 size={16} className="spin" /> : <Github size={16} />}
+          {isBusy ? "Connecting GitHub…" : "Install PR Sentinel GitHub App"}
+        </button>
+      </div>
     </section>
   );
 }
 
 function ConnectedView({
-  accountLogin,
-  repositoryCount,
-  repos,
+  github,
+  isBusy,
 }: {
-  accountLogin: string | null;
-  repositoryCount: number;
-  repos: ReturnType<typeof useRepositories>;
+  github: ReturnType<typeof useGitHubConnection>;
+  isBusy: boolean;
 }) {
   return (
     <>
       <section className="detail-card" style={{ borderColor: "#70d9a544" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-          <CheckCircle2 size={18} color="var(--success)" />
-          <h2 style={{ margin: 0 }}>GitHub connected</h2>
+          {isBusy ? (
+            <Loader2 size={18} className="spin" color="var(--success)" />
+          ) : (
+            <CheckCircle2 size={18} color="var(--success)" />
+          )}
+          <h2 style={{ margin: 0 }}>{statusLabel(github.status)}</h2>
         </div>
-        <p className="card-sub">Your installation is active and monitoring pull requests.</p>
+        <p className="card-sub">
+          {github.status === "syncing"
+            ? "Your installation is active. Updating repository list…"
+            : "Your installation is active and monitoring pull requests."}
+        </p>
         <div className="connected-grid">
           <div className="info-tile">
             <span>Account</span>
-            <strong>{accountLogin ? `@${accountLogin}` : "Linked"}</strong>
+            <strong>
+              {github.accountLogin ? `@${github.accountLogin}` : "Linked"}
+            </strong>
           </div>
           <div className="info-tile">
             <span>Installation</span>
-            <strong>Active</strong>
+            <strong>{github.suspended ? "Suspended" : "Active"}</strong>
           </div>
           <div className="info-tile">
             <span>Repositories</span>
-            <strong>{repositoryCount}</strong>
+            <strong>{github.repositoriesCount}</strong>
           </div>
         </div>
         <div className="button-row">
-          <button className="secondary-button" onClick={beginInstall}>
+          <button
+            className="secondary-button"
+            onClick={() => void github.startConnect()}
+            disabled={isBusy}
+          >
             <Settings2 size={15} />
             Manage GitHub App
           </button>
-          <button className="secondary-button" onClick={beginInstall}>
+          <button
+            className="secondary-button"
+            onClick={() => void github.syncRepositories()}
+            disabled={isBusy}
+          >
             <RefreshCw size={15} />
-            Reconnect
+            Sync repositories
           </button>
         </div>
       </section>
 
-      <section className="detail-card">
-        <h2>Connected repositories</h2>
-        <p className="card-sub">Repositories PR Sentinel can access through this installation.</p>
-        {repos.isLoading ? (
-          <SkeletonRows rows={4} />
-        ) : repos.error ? (
-          <ErrorState error={repos.error} onRetry={() => repos.refresh()} resourceLabel="repositories" />
-        ) : !repos.repositories || repos.repositories.length === 0 ? (
+      <section className="panel-scroll-card">
+        <div className="panel-scroll-header">
+          <h2>Connected repositories</h2>
+          <p>Repositories PR Sentinel can access through this installation.</p>
+        </div>
+        <div className="panel-scroll-body">
+        {github.repositories.length === 0 ? (
           <EmptyState
             title="No repositories selected"
             body="Manage the GitHub App to grant PR Sentinel access to one or more repositories."
-            action={{ label: "Manage GitHub App", onClick: beginInstall }}
+            action={{
+              label: "Manage GitHub App",
+              onClick: () => void github.startConnect(),
+            }}
           />
         ) : (
           <div className="file-list">
-            {repos.repositories.map((repo) => (
+            {github.repositories.map((repo) => (
               <div className="file-row" key={repo.id}>
                 <span className="file-name" title={repo.fullName}>
                   {repo.fullName}
@@ -175,6 +245,7 @@ function ConnectedView({
             ))}
           </div>
         )}
+        </div>
       </section>
     </>
   );

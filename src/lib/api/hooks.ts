@@ -1,33 +1,31 @@
 "use client";
 
-/**
- * hooks.ts
- * SWR-based data hooks. Components consume these instead of calling fetch or
- * the api modules directly, so caching, revalidation and live updates are
- * handled in one place.
- */
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { type SWRConfiguration } from "swr";
 import { ApiError } from "./client";
-import { githubApi, getInstallUrl } from "./github";
+import { getInstallUrl } from "./github";
 import { repositoriesApi } from "./repositories";
 import { pullRequestsApi } from "./pull-requests";
 import { reviewsApi } from "./reviews";
 import { pollingInterval, subscribeToPullRequest } from "./realtime";
+import {
+  useGitHubConnection,
+  type GitHubConnectionState,
+} from "@/lib/store/useGitHubConnection";
 import type {
   DashboardStats,
+  GitHubInstallationStatus,
   PullRequest,
   PullRequestFilters,
   PullRequestStatus,
   Repository,
+  RepositorySummary,
   Review,
 } from "./types";
 
 const swrDefaults: SWRConfiguration = {
   revalidateOnFocus: false,
   shouldRetryOnError: (err) => {
-    // Don't hammer the API on auth/permission/not-found errors.
     if (err instanceof ApiError) return err.isServer || err.status === 0;
     return true;
   },
@@ -38,38 +36,86 @@ const TERMINAL_PR: PullRequestStatus[] = ["REVIEWED", "FAILED"];
 
 export { getInstallUrl };
 
-// ─── GitHub connection ─────────────────────────────────────────────────────────
+// ─── GitHub connection (RTK Query + Redux) ───────────────────────────────────
 
-export function useGitHubInstallation() {
-  const { data, error, isLoading, mutate } = useSWR(
-    "github/installation",
-    () => githubApi.getInstallation(),
-    swrDefaults
-  );
-  return { status: data, error: error as ApiError | undefined, isLoading, refresh: mutate };
-}
+/** @deprecated Use useGitHubConnection() — kept for gradual migration. */
+export function useGitHubInstallation(): {
+  status: GitHubInstallationStatus | undefined;
+  error: ApiError | undefined;
+  isLoading: boolean;
+  refresh: () => void;
+  connection: GitHubConnectionState;
+} {
+  const connection = useGitHubConnection();
 
-// ─── Repositories ─────────────────────────────────────────────────────────────
+  const status = useMemo<GitHubInstallationStatus | undefined>(() => {
+    if (!connection.initialized && connection.isChecking) return undefined;
+    return {
+      connected: connection.connected,
+      installation: connection.installation,
+      repositoryCount: connection.repositoriesCount,
+    };
+  }, [connection]);
 
-export function useRepositories() {
-  const { data, error, isLoading, mutate } = useSWR(
-    "repositories",
-    () => repositoriesApi.list(),
-    swrDefaults
-  );
+  const error = useMemo(() => {
+    if (!connection.error) return undefined;
+    if (typeof connection.error === "string") {
+      return new ApiError(0, connection.error);
+    }
+    return new ApiError(
+      connection.error.status,
+      connection.error.message,
+      connection.error.details,
+    );
+  }, [connection.error]);
+
   return {
-    repositories: data as Repository[] | undefined,
-    error: error as ApiError | undefined,
-    isLoading,
-    refresh: mutate,
+    status,
+    error,
+    isLoading: connection.isChecking,
+    refresh: connection.refresh,
+    connection,
   };
 }
+
+/** Repositories from the global GitHub connection cache. */
+export function useRepositories(): {
+  repositories: RepositorySummary[] | undefined;
+  error: ApiError | undefined;
+  isLoading: boolean;
+  refresh: () => void;
+} {
+  const { connection } = useGitHubInstallation();
+
+  const error = useMemo(() => {
+    if (!connection.error) return undefined;
+    if (typeof connection.error === "string") {
+      return new ApiError(0, connection.error);
+    }
+    return new ApiError(
+      connection.error.status,
+      connection.error.message,
+      connection.error.details,
+    );
+  }, [connection.error]);
+
+  return {
+    repositories: connection.initialized ? connection.repositories : undefined,
+    error,
+    isLoading: connection.isChecking,
+    refresh: connection.refresh,
+  };
+}
+
+export { useGitHubConnection } from "@/lib/store/useGitHubConnection";
+
+// ─── Repositories (detail endpoints — still SWR) ───────────────────────────────
 
 export function useRepository(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? ["repository", id] : null,
     () => repositoriesApi.get(id as string),
-    swrDefaults
+    swrDefaults,
   );
   return {
     repository: data as Repository | undefined,
@@ -83,7 +129,7 @@ export function useRepositoryPullRequests(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? ["repository", id, "pull-requests"] : null,
     () => repositoriesApi.pullRequests(id as string),
-    swrDefaults
+    swrDefaults,
   );
   return {
     pullRequests: data as PullRequest[] | undefined,
@@ -98,12 +144,12 @@ export function useRepositoryPullRequests(id: string | undefined) {
 export function usePullRequests(filters: PullRequestFilters = {}) {
   const key = useMemo(
     () => ["pull-requests", JSON.stringify(filters)] as const,
-    [filters]
+    [filters],
   );
   const { data, error, isLoading, mutate } = useSWR(
     key,
     () => pullRequestsApi.list(filters),
-    swrDefaults
+    swrDefaults,
   );
   return {
     pullRequests: data as PullRequest[] | undefined,
@@ -113,11 +159,6 @@ export function usePullRequests(filters: PullRequestFilters = {}) {
   };
 }
 
-/**
- * Live pull request detail. Uses WebSocket push as the primary update channel
- * and exponential-backoff polling as a fallback while the PR is not terminal.
- * Polling stops entirely once status is REVIEWED or FAILED.
- */
 export function useLivePullRequest(id: string | undefined) {
   const attemptRef = useRef(0);
   const [live, setLive] = useState(false);
@@ -136,13 +177,12 @@ export function useLivePullRequest(id: string | undefined) {
         attemptRef.current += 1;
         return pollingInterval({ isTerminal, attempt: attemptRef.current, live });
       },
-    }
+    },
   );
 
   const status = data?.status;
   const isTerminal = !!status && TERMINAL_PR.includes(status);
 
-  // Open a WebSocket subscription while the PR is still processing.
   useEffect(() => {
     if (!id || isTerminal) {
       setLive(false);
@@ -174,7 +214,7 @@ export function useReviews() {
   const { data, error, isLoading, mutate } = useSWR(
     "reviews",
     () => reviewsApi.list(),
-    swrDefaults
+    swrDefaults,
   );
   return {
     reviews: data as Review[] | undefined,
@@ -188,7 +228,7 @@ export function useReview(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? ["review", id] : null,
     () => reviewsApi.get(id as string),
-    swrDefaults
+    swrDefaults,
   );
   return {
     review: data as Review | undefined,
@@ -200,46 +240,45 @@ export function useReview(id: string | undefined) {
 
 // ─── Dashboard summary ─────────────────────────────────────────────────────────
 
-/**
- * Derives dashboard stats from the installation status and pull request list
- * so we don't invent a bespoke stats endpoint. Recent PRs are the 5 most
- * recently updated.
- */
 export function useDashboardStats(): {
   stats: DashboardStats | undefined;
   error: ApiError | undefined;
   isLoading: boolean;
   refresh: () => void;
+  connectionStatus: GitHubConnectionState["status"];
 } {
   const install = useGitHubInstallation();
   const prs = usePullRequests();
+  const connection = install.connection;
 
-  const connected = !!install.status?.connected;
+  const connected = connection.connected;
   const error = (install.error ?? prs.error) as ApiError | undefined;
-  const isLoading = install.isLoading || (connected && prs.isLoading);
+  const isLoading =
+    connection.isChecking || (connected && prs.isLoading);
 
   const stats = useMemo<DashboardStats | undefined>(() => {
-    if (!install.status) return undefined;
+    if (connection.isChecking) return undefined;
     const list = prs.pullRequests ?? [];
     const recent = [...list]
       .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
       .slice(0, 5);
     return {
       connected,
-      repositoryCount: install.status.repositoryCount,
+      repositoryCount: connection.repositoriesCount,
       pullRequestCount: list.length,
       reviewedCount: list.filter((p) => p.status === "REVIEWED").length,
       failedCount: list.filter((p) => p.status === "FAILED").length,
       recentPullRequests: recent,
     };
-  }, [install.status, prs.pullRequests, connected]);
+  }, [connection.isChecking, connection.repositoriesCount, connected, prs.pullRequests]);
 
   return {
     stats,
     error,
     isLoading,
+    connectionStatus: connection.status,
     refresh: () => {
-      void install.refresh();
+      install.refresh();
       void prs.refresh();
     },
   };

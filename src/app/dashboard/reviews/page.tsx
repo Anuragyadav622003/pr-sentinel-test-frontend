@@ -14,7 +14,8 @@ import {
   XCircle,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
-import { useReviews, useGitHubInstallation } from "@/lib/api/hooks";
+import { useReviews } from "@/lib/api/hooks";
+import { useGitHubConnection } from "@/lib/store";
 import type { Review, ReviewStatus } from "@/lib/api/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -184,8 +185,8 @@ function StatsRow({ reviews }: { reviews: Review[] }) {
 export default function ReviewsPage() {
   const router = useRouter();
   const { reviews, isLoading, error, refresh } = useReviews();
-  const { status } = useGitHubInstallation();
-  const connected = !!status?.connected;
+  const github = useGitHubConnection();
+  const connected = github.connected;
 
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");

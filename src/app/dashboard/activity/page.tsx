@@ -1,2 +1,3 @@
-import WorkspacePage from "@/components/workspace-pages";
-export default function ActivityPage() { return <WorkspacePage kind="activity" />; }
+import ActivityPage from "@/components/activity-page";
+
+export default ActivityPage;

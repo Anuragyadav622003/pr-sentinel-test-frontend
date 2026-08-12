@@ -27,13 +27,25 @@ export type InstallationState =
 
 export interface Installation {
   id: string;
-  githubInstallationId: number;
-  userId: string;
-  /** GitHub account / organization login the app was installed on. */
+  /** Stored as string — GitHub IDs can exceed 32-bit integer range. */
+  githubInstallationId: string;
+  userId: string | null;
   accountLogin?: string | null;
   accountAvatarUrl?: string | null;
+  suspended?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Repository summary returned by GET /github/installation/status. */
+export interface RepositorySummary {
+  id: string;
+  githubRepoId: number;
+  owner: string;
+  name: string;
+  fullName: string;
+  isActive: boolean;
+  htmlUrl: string | null;
 }
 
 export interface Repository {
@@ -61,6 +73,8 @@ export interface PrFile {
   changes: number;
   pullRequestId: string;
   createdAt: string;
+  /** Present when fetched via GET /pull-requests/:id/files/:fileId */
+  patch?: string | null;
 }
 
 export interface ReviewComment {
@@ -122,6 +136,11 @@ export interface GitHubInstallationStatus {
   connected: boolean;
   installation: Installation | null;
   repositoryCount: number;
+}
+
+/** GET /github/installation/status — installation + active repositories. */
+export interface GitHubInstallationStatusWithRepos extends GitHubInstallationStatus {
+  repositories: RepositorySummary[];
 }
 
 // ─── Dashboard summary ─────────────────────────────────────────────────────────

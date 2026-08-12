@@ -26,7 +26,10 @@ import {
   logout,
   type AuthUser,
 } from "@/lib/auth";
-import { useGitHubInstallation } from "@/lib/api/hooks";
+import { useGitHubConnection } from "@/lib/store";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { baseApi } from "@/lib/store/baseApi";
+import { resetGitHubState } from "@/lib/store/githubSlice";
 
 const NAV = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
@@ -53,8 +56,9 @@ function useTheme() {
 }
 
 function GitHubHealth() {
-  const { status, isLoading } = useGitHubInstallation();
-  if (isLoading) {
+  const github = useGitHubConnection();
+
+  if (github.isChecking || github.status === "unknown") {
     return (
       <div className="health-card">
         <div className="health-title">
@@ -65,7 +69,20 @@ function GitHubHealth() {
       </div>
     );
   }
-  if (status?.connected) {
+
+  if (github.status === "connecting" || github.status === "syncing") {
+    return (
+      <div className="health-card">
+        <div className="health-title">
+          <span className="pulse-dot pending" />
+          {github.status === "connecting" ? "Connecting GitHub…" : "Syncing repositories…"}
+        </div>
+        <span>Please wait</span>
+      </div>
+    );
+  }
+
+  if (github.connected) {
     return (
       <div className="health-card">
         <div className="health-title">
@@ -73,12 +90,13 @@ function GitHubHealth() {
           GitHub connected
         </div>
         <span>
-          {status.repositoryCount} repositor
-          {status.repositoryCount === 1 ? "y" : "ies"} monitored
+          {github.repositoriesCount} repositor
+          {github.repositoriesCount === 1 ? "y" : "ies"} monitored
         </span>
       </div>
     );
   }
+
   return (
     <div className="health-card">
       <div className="health-title">
@@ -97,20 +115,24 @@ export default function DashboardShell({
   eyebrow,
   children,
   actions,
+  variant = "default",
 }: {
   title: string;
   eyebrow?: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  /** focus = tighter layout for diff/code review pages */
+  variant?: "default" | "focus";
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useAppDispatch();
   const { isDark, toggle } = useTheme();
   const [mobileNav, setMobileNav] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const { status } = useGitHubInstallation();
+  const github = useGitHubConnection();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -135,6 +157,8 @@ export default function DashboardShell({
   async function handleSignOut() {
     await logout();
     clearStoredUser();
+    dispatch(resetGitHubState());
+    dispatch(baseApi.util.resetApiState());
     router.replace("/sign-in");
   }
 
@@ -144,8 +168,8 @@ export default function DashboardShell({
 
   const displayName = user ? getDisplayName(user) : "Workspace member";
   const initials = user ? getInitials(user) : "U";
-  const accountLabel = status?.installation?.accountLogin
-    ? `@${status.installation.accountLogin}`
+  const accountLabel = github.accountLogin
+    ? `@${github.accountLogin}`
     : user?.githubLogin
     ? `@${user.githubLogin}`
     : user?.email ?? "Account";
@@ -179,11 +203,17 @@ export default function DashboardShell({
 
         <div className="workspace-switcher">
           <div className="workspace-avatar">
-            {status?.installation?.accountLogin?.[0]?.toUpperCase() ?? initials[0]}
+            {github.accountLogin?.[0]?.toUpperCase() ?? initials[0]}
           </div>
           <div className="workspace-copy">
-            <strong>{status?.installation?.accountLogin ?? "Workspace"}</strong>
-            <span>{status?.connected ? "GitHub connected" : "Connect GitHub to begin"}</span>
+            <strong>{github.accountLogin ?? "Workspace"}</strong>
+            <span>
+              {github.isChecking
+                ? "Checking GitHub connection…"
+                : github.connected
+                  ? "GitHub connected"
+                  : "Connect GitHub to begin"}
+            </span>
           </div>
         </div>
 
@@ -273,8 +303,12 @@ export default function DashboardShell({
           </div>
         </header>
 
-        <div className="content-wrap workspace-content">
-          {eyebrow && (
+        <div
+          className={`content-wrap workspace-content page-scroll-area${
+            variant === "focus" ? " page-scroll-area--focus" : ""
+          }`}
+        >
+          {eyebrow && variant !== "focus" && (
             <div className="eyebrow shell-eyebrow">
               <span className="eyebrow-line" />
               {eyebrow}

@@ -1,2 +1,3 @@
-import WorkspacePage from "@/components/workspace-pages";
-export default function FindingsPage() { return <WorkspacePage kind="findings" />; }
+import FindingsPage from "@/components/findings-page";
+
+export default FindingsPage;

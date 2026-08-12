@@ -1,2 +1,3 @@
-import WorkspacePage from "@/components/workspace-pages";
-export default function PullRequestsPage() { return <WorkspacePage kind="pull-requests" />; }
+import PullRequestsPage from "@/components/pull-requests-page";
+
+export default PullRequestsPage;

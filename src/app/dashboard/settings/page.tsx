@@ -15,7 +15,10 @@ import {
   Users,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
-import { useGitHubInstallation } from "@/lib/api/hooks";
+import { useGitHubConnection } from "@/lib/store";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { baseApi } from "@/lib/store/baseApi";
+import { resetGitHubState } from "@/lib/store/githubSlice";
 import { clearStoredUser, getStoredUser, logout } from "@/lib/auth";
 
 // ─── Toggle switch ─────────────────────────────────────────────────────────────
@@ -165,7 +168,8 @@ function ConnectionNotice() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const { status, isLoading } = useGitHubInstallation();
+  const github = useGitHubConnection();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const user = getStoredUser();
 
@@ -180,12 +184,14 @@ export default function SettingsPage() {
   const [notifyCompleted, setNotifyCompleted] = useState(false);
   const [notifyCritical, setNotifyCritical] = useState(true);
 
-  const connected = !!status?.connected;
-  const accountLogin = status?.installation?.accountLogin;
+  const connected = github.connected;
+  const accountLogin = github.accountLogin;
 
   async function handleSignOut() {
     await logout();
     clearStoredUser();
+    dispatch(resetGitHubState());
+    dispatch(baseApi.util.resetApiState());
     router.replace("/sign-in");
   }
 
@@ -199,7 +205,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {!isLoading && !connected && <ConnectionNotice />}
+      {!github.isChecking && !connected && <ConnectionNotice />}
 
       {/* ── Review policy ───────────────────────────────────────── */}
       <SectionCard
@@ -329,7 +335,7 @@ export default function SettingsPage() {
         title="GitHub connection"
         subtitle="Manage your GitHub App installation"
       >
-        {isLoading ? (
+        {github.isChecking ? (
           <div
             className="skeleton"
             style={{ height: 40, borderRadius: 6 }}
@@ -352,8 +358,8 @@ export default function SettingsPage() {
                 >
                   {accountLogin ?? "your account"}
                 </code>{" "}
-                — {status?.repositoryCount ?? 0} repositor
-                {status?.repositoryCount === 1 ? "y" : "ies"} monitored.
+                — {github.repositoriesCount} repositor
+                {github.repositoriesCount === 1 ? "y" : "ies"} monitored.
               </small>
             </span>
             <button

@@ -4,7 +4,7 @@
  */
 
 import { apiRequest } from "./client";
-import type { PullRequest, PullRequestFilters } from "./types";
+import type { PrFile, PullRequest, PullRequestFilters } from "./types";
 
 export const pullRequestsApi = {
   /** GET /pull-requests — optionally filtered by repository, status, author, date. */
@@ -26,5 +26,12 @@ export const pullRequestsApi = {
    */
   get(id: string, signal?: AbortSignal): Promise<PullRequest> {
     return apiRequest<PullRequest>(`/pull-requests/${id}`, { signal });
+  },
+
+  /** GET /pull-requests/:id/files/:fileId — unified diff patch for one file. */
+  getFile(pullRequestId: string, fileId: string, signal?: AbortSignal): Promise<PrFile> {
+    return apiRequest<PrFile>(`/pull-requests/${pullRequestId}/files/${fileId}`, {
+      signal,
+    });
   },
 };
