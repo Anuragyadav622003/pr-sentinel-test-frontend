@@ -29,18 +29,49 @@ export const githubApi = {
   },
 
   /**
-   * POST /github/installation/verify
-   * Ask the backend to verify a freshly-completed installation and link it to
-   * the authenticated user. GitHub redirects back with an `installation_id`
-   * (and `setup_action`) which we pass through for the backend to validate.
-   * The backend authenticates the session — it does NOT trust these values
-   * blindly.
+   * POST /github/install/start
+   * Returns the GitHub App install URL carrying a single-use `state` bound to
+   * the authenticated user, which GitHub echoes back to the Setup URL.
+   */
+  startInstall(signal?: AbortSignal): Promise<{ installUrl: string }> {
+    return apiRequest<{ installUrl: string }>("/github/install/start", {
+      method: "POST",
+      signal,
+    });
+  },
+
+  /**
+   * GET /github/install/complete
+   * The GitHub App Setup URL redirect lands on /github/setup, which forwards
+   * `installation_id` / `state` here. The backend validates the state against
+   * the authenticated session, links the installation to the user and syncs
+   * repositories. IDs stay strings — they are opaque to the frontend.
+   */
+  completeInstall(
+    input: { installationId: string; state?: string | null; setupAction?: string | null },
+    signal?: AbortSignal
+  ): Promise<GitHubInstallationStatus> {
+    return apiRequest<GitHubInstallationStatus>("/github/install/complete", {
+      params: {
+        installation_id: input.installationId,
+        state: input.state ?? undefined,
+        setup_action: input.setupAction ?? undefined,
+      },
+      signal,
+    });
+  },
+
+  /**
+   * POST /github/install/claim
+   * State-free fallback for when GitHub redirects back without a state (the
+   * app was already installed). Identity comes from the session cookie; the
+   * backend only allows unclaimed installations or ones already owned.
    */
   verifyInstallation(
     input: { installationId?: string | null; setupAction?: string | null },
     signal?: AbortSignal
   ): Promise<GitHubInstallationStatus> {
-    return apiRequest<GitHubInstallationStatus>("/github/installation/verify", {
+    return apiRequest<GitHubInstallationStatus>("/github/install/claim", {
       method: "POST",
       body: {
         installationId: input.installationId ?? undefined,
