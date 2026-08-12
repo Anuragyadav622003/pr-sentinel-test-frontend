@@ -5,17 +5,29 @@ import {
   AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
-  Github,
+  GitBranch,
   RefreshCw,
   Settings2,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/ui/states";
+import { githubApi } from "@/lib/api/github";
 import { getInstallUrl, useGitHubInstallation, useRepositories } from "@/lib/api/hooks";
 
-function beginInstall() {
-  const url = getInstallUrl();
-  if (url) window.location.assign(url);
+/**
+ * Prefer the backend-built URL: it carries a single-use `state` bound to the
+ * session, which GitHub echoes back to /github/setup. The static env URL is
+ * only a fallback — it has no state, so the backend falls back to claiming
+ * the installation from the session cookie.
+ */
+async function beginInstall(): Promise<void> {
+  try {
+    const { installUrl } = await githubApi.startInstall();
+    window.location.assign(installUrl);
+  } catch {
+    const fallback = getInstallUrl();
+    if (fallback) window.location.assign(fallback);
+  }
 }
 
 export default function GitHubIntegration() {
@@ -61,10 +73,17 @@ export default function GitHubIntegration() {
 }
 
 function NotConnectedView({ installUrlMissing }: { installUrlMissing: boolean }) {
+  const [starting, setStarting] = useState(false);
+
+  const onInstall = () => {
+    setStarting(true);
+    void beginInstall().finally(() => setStarting(false));
+  };
+
   return (
     <section className="github-hero">
       <div className="hero-icon">
-        <Github size={22} />
+        <GitBranch size={22} />
       </div>
       <div>
         <h2>Connect PR Sentinel to GitHub</h2>
@@ -84,9 +103,9 @@ function NotConnectedView({ installUrlMissing }: { installUrlMissing: boolean })
         </div>
       ) : (
         <div className="button-row">
-          <button className="primary-button" onClick={beginInstall}>
-            <Github size={16} />
-            Install PR Sentinel GitHub App
+          <button className="primary-button" onClick={onInstall} disabled={starting}>
+            <GitBranch size={16} />
+            {starting ? "Opening GitHub…" : "Install PR Sentinel GitHub App"}
           </button>
         </div>
       )}
