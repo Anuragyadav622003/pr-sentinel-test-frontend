@@ -135,6 +135,25 @@ export interface DashboardStats {
   recentPullRequests: PullRequest[];
 }
 
+// ─── AI Review Chat ───────────────────────────────────────────────────────────
+
+export interface ChatRequest {
+  message: string;
+  /** Omit on the first turn; echo back the returned id on subsequent turns. */
+  conversationId?: string;
+}
+
+export interface ChatResponse {
+  message: string;
+  conversationId: string;
+}
+
+/** A single bubble rendered inside the chat UI (client-side only). */
+export interface ChatBubble {
+  role: "user" | "assistant";
+  content: string;
+}
+
 // ─── Filters ─────────────────────────────────────────────────────────────────
 
 export interface PullRequestFilters {

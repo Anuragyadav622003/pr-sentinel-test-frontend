@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Github, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, GitBranch, Loader2 } from "lucide-react";
 import { githubApi, getInstallUrl } from "@/lib/api/github";
 import type { GitHubInstallationStatus } from "@/lib/api/types";
 
@@ -110,7 +110,7 @@ function CallbackContent() {
       <div className="callback-actions">
         {installUrl && (
           <a className="primary-button" href={installUrl}>
-            <Github size={16} />
+            <GitBranch size={16} />
             Try again
           </a>
         )}

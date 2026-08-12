@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Code2,
+  GitBranch,
   GitPullRequest,
-  Github,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -36,7 +36,7 @@ const NAV = [
 ] as const;
 
 const MANAGE = [
-  { label: "GitHub", href: "/dashboard/github", icon: Github },
+  { label: "GitHub", href: "/dashboard/github", icon: GitBranch },
   { label: "Settings", href: "/dashboard/settings", icon: Settings2 },
 ] as const;
 
@@ -189,7 +189,7 @@ export default function DashboardShell({
 
         <nav className="nav-list" aria-label="Main navigation">
           <p className="nav-label">Workspace</p>
-          {NAV.map(({ label, href, icon: Icon, exact }) => (
+          {NAV.map(({ label, href, icon: Icon, exact }: { label: string; href: string; icon: React.ComponentType<{ size?: number }>; exact?: boolean }) => (
             <Link
               key={href}
               href={href}

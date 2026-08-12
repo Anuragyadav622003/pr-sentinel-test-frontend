@@ -4,7 +4,7 @@
  */
 
 import { apiRequest } from "./client";
-import type { Review } from "./types";
+import type { ChatRequest, ChatResponse, Review } from "./types";
 
 export const reviewsApi = {
   /** GET /reviews — all reviews for the authenticated user. */
@@ -30,6 +30,19 @@ export const reviewsApi = {
     return apiRequest<Review>(`/reviews/${id}/retry`, {
       method: "POST",
       idempotencyKey: `retry-review-${id}`,
+      signal,
+    });
+  },
+
+  /**
+   * POST /reviews/:id/chat
+   * Send a message about this review and receive an AI reply.
+   * Pass `conversationId` after the first turn to maintain history.
+   */
+  chat(id: string, req: ChatRequest, signal?: AbortSignal): Promise<ChatResponse> {
+    return apiRequest<ChatResponse>(`/reviews/${id}/chat`, {
+      method: "POST",
+      body: req,
       signal,
     });
   },

@@ -4,8 +4,8 @@ import Link from "next/link";
 import {
   CheckCircle2,
   Code2,
+  GitBranch,
   GitPullRequest,
-  Github,
   ShieldCheck,
   XCircle,
 } from "lucide-react";
@@ -75,7 +75,7 @@ export default function PRSentinelDashboard() {
               label="GitHub"
               loading={isLoading}
               value={connected ? "Connected" : "Not connected"}
-              icon={<Github size={16} />}
+              icon={<GitBranch size={16} />}
               foot={connected ? "Installation active" : "Connect to begin"}
             />
             <StatCard
@@ -115,7 +115,7 @@ export default function PRSentinelDashboard() {
               <SkeletonRows rows={4} />
             ) : !connected ? (
               <EmptyState
-                icon={<Github size={18} />}
+                icon={<GitBranch size={18} />}
                 title="Connect GitHub to get started"
                 body="Install the PR Sentinel GitHub App and select repositories to begin receiving automatic pull request reviews."
                 action={{ label: "Connect GitHub", href: "/dashboard/github" }}

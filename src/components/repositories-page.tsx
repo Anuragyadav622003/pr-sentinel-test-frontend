@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Code2, Github, GitPullRequest, ShieldCheck } from "lucide-react";
+import { Code2, GitBranch, GitPullRequest, ShieldCheck } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
 import { EmptyState, ErrorState, SkeletonCards } from "@/components/ui/states";
 import { useGitHubInstallation, useRepositories } from "@/lib/api/hooks";
@@ -60,7 +60,7 @@ export default function RepositoriesPage() {
         <ErrorState error={error} onRetry={() => refresh()} resourceLabel="repositories" />
       ) : !repositories || repositories.length === 0 ? (
         <EmptyState
-          icon={<Github size={18} />}
+          icon={<GitBranch size={18} />}
           title="No repositories connected"
           body={
             status?.connected
