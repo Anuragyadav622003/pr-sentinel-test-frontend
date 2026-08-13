@@ -5,8 +5,9 @@
  * consistent. No raw fetch() calls should live inside React components.
  */
 
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+import { API_URL } from "@/lib/config";
+
+export { API_URL };
 
 /** Success envelope the backend wraps every 2xx response in. */
 interface ApiSuccess<T> {

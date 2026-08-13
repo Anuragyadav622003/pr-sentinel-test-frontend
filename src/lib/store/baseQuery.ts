@@ -5,8 +5,9 @@ import {
   type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+import { API_URL } from "@/lib/config";
+
+export { API_URL };
 
 interface ApiSuccess<T> {
   success: true;
