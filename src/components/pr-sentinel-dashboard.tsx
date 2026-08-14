@@ -6,7 +6,6 @@ import {
   Code2,
   GitBranch,
   GitPullRequest,
-  ShieldCheck,
   XCircle,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
@@ -29,7 +28,7 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <article className="stat-card">
+    <article className="stat-card" aria-label={`${label}: ${loading ? "Loading" : value}`}>
       <div className="stat-head">
         <span>{label}</span>
         {icon}

@@ -144,6 +144,11 @@ export default function DashboardShell({
   }, [router]);
 
   useEffect(() => {
+    setMobileNav(false);
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setMobileNav(false);
@@ -182,9 +187,16 @@ export default function DashboardShell({
   return (
     <div className={isDark ? "app-shell" : "app-shell light-mode"}>
       {mobileNav && (
-        <div className="drawer-backdrop mobile-only" onClick={() => setMobileNav(false)} />
+        <div
+          className="drawer-backdrop mobile-only"
+          role="presentation"
+          onClick={() => setMobileNav(false)}
+        />
       )}
-      <aside className={`sidebar ${mobileNav ? "sidebar-open" : ""}`}>
+      <aside
+        className={`sidebar ${mobileNav ? "sidebar-open" : ""}`}
+        aria-label="Workspace navigation"
+      >
         <div className="brand-row">
           <div className="brand-mark">
             <Sparkles size={16} strokeWidth={2.5} />
@@ -265,9 +277,18 @@ export default function DashboardShell({
               </button>
               {menuOpen && (
                 <div className="user-menu" role="menu">
-                  <button role="menuitem" onClick={handleSignOut}>
-                    <LogOut size={14} />
-                    Sign out
+                  <button
+                    className="signout-menu-item"
+                    role="menuitem"
+                    onClick={handleSignOut}
+                  >
+                    <span className="signout-icon" aria-hidden="true">
+                      <LogOut size={14} />
+                    </span>
+                    <span className="signout-copy">
+                      <strong>Sign out</strong>
+                      <small>End this session</small>
+                    </span>
                   </button>
                 </div>
               )}

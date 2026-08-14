@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+
+
 :root {
   --background: #0b1018;
   --foreground: #edf3fa;
@@ -602,3 +604,44 @@ html, body { height: 100%; }
   .diff-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(280px, 1fr); height: auto; min-height: 420px; }
   .diff-file-list:not(.diff-file-list--collapsed) { max-height: 160px; border-right: 0; border-bottom: 1px solid var(--border); }
 }
+
+/* UI enhancement layer */
+:root { --shadow-soft: 0 12px 34px rgba(0, 0, 0, .18); --shadow-lift: 0 18px 50px rgba(0, 0, 0, .24); }
+body { font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; }
+.app-shell { background: radial-gradient(circle at 80% -10%, rgba(97, 216, 199, .07), transparent 32%), var(--background); }
+.sidebar { background: color-mix(in srgb, var(--surface) 88%, var(--background)); box-shadow: 8px 0 28px rgba(0,0,0,.08); }
+.topbar { min-height: 68px; background: color-mix(in srgb, var(--background) 86%, transparent); backdrop-filter: blur(16px); }
+.content-wrap { width: min(100%, 1440px); margin-inline: auto; }
+.page-stack { gap: 28px; }
+.data-header { margin-bottom: 4px; }
+.data-header h1, .workspace-page-header h1 { font-weight: 700; }
+.data-header p, .workspace-page-header p { font-size: 13px; }
+.stat-card, .panel-scroll-card, .workspace-panel { border-radius: 12px; box-shadow: var(--shadow-soft); }
+.stat-card { min-height: 130px; padding: 17px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.stat-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 42%, var(--border)); box-shadow: var(--shadow-lift); }
+.stat-head { color: var(--muted); }
+.stat-head svg { color: var(--accent); }
+.stat-value { margin-top: 15px; font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -.04em; }
+.stat-foot { margin-top: 8px; color: var(--muted); font-size: 11px; }
+.panel-scroll-card { overflow: hidden; }
+.panel-scroll-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+.panel-scroll-header h2 { font-size: 15px; font-weight: 650; }
+.panel-scroll-header p { margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.panel-scroll-body { padding: 4px; }
+.primary-button, .secondary-button { transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
+.primary-button:hover, .secondary-button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.14); }
+.nav-item { transition: background .18s ease, color .18s ease, padding-left .18s ease; }
+.nav-item:hover { padding-left: 14px; }
+.drawer-backdrop { position: fixed; inset: 0; z-index: 30; display: block; background: rgba(3, 8, 14, .62); backdrop-filter: blur(3px); }
+@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .topbar { min-height: 64px; } .content-wrap { padding-top: 24px; } .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .stat-card { min-height: 118px; padding: 14px; } .data-header .header-actions { width: 100%; } .data-header .header-actions a { width: 100%; justify-content: center; } .panel-scroll-header { padding: 17px 16px 14px; } }
+@media (max-width: 420px) { .stats-grid { grid-template-columns: 1fr; } .stat-card { min-height: 104px; } }
+
+.user-menu { min-width: 190px; padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-raised); box-shadow: 0 18px 40px rgba(0,0,0,.28); }
+.signout-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px; border: 0; border-radius: 7px; color: var(--foreground); background: transparent; text-align: left; cursor: pointer; }
+.signout-menu-item:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.signout-icon { display: grid; place-items: center; flex: 0 0 auto; width: 28px; height: 28px; border-radius: 7px; color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+.signout-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.signout-copy strong { font-size: 12px; font-weight: 650; }
+.signout-copy small { color: var(--muted); font-size: 10px; }
+

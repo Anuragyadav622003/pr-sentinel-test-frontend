@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PR Sentinel — Engineering intelligence",
   description: "Prioritize pull request reviews with risk-aware engineering intelligence.",
+  applicationName: "PR Sentinel",
+  icons: {
+    icon: [{ url: "/pr-sentinel-mark.svg", type: "image/svg+xml" }],
+    apple: "/pr-sentinel-mark.svg",
+  },
 };
 
 export default function RootLayout({
