@@ -277,9 +277,18 @@ export default function DashboardShell({
               </button>
               {menuOpen && (
                 <div className="user-menu" role="menu">
-                  <button role="menuitem" onClick={handleSignOut}>
-                    <LogOut size={14} />
-                    Sign out
+                  <button
+                    className="signout-menu-item"
+                    role="menuitem"
+                    onClick={handleSignOut}
+                  >
+                    <span className="signout-icon" aria-hidden="true">
+                      <LogOut size={14} />
+                    </span>
+                    <span className="signout-copy">
+                      <strong>Sign out</strong>
+                      <small>End this session</small>
+                    </span>
                   </button>
                 </div>
               )}
