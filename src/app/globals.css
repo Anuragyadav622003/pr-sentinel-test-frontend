@@ -44,8 +44,9 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--background); }
-body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }
+html { background: var(--background); scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+body { margin: 0; background: var(--background); color: var(--foreground); scrollbar-width: none; font-family: Arial, Helvetica, sans-serif; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 
