@@ -133,8 +133,15 @@ function EmptyReviews({ connected }: { connected: boolean }) {
 function StatsRow({ reviews }: { reviews: Review[] }) {
   const completed = reviews.filter((r) => r.status === "COMPLETED").length;
   const failed = reviews.filter((r) => r.status === "FAILED").length;
-  const pending = reviews.filter((r) => r.status === "PENDING").length;
   const totalComments = reviews.reduce((n, r) => n + (r.comments?.length ?? 0), 0);
+  const criticalCount = reviews.reduce(
+    (n, r) => n + (r.comments?.filter((c) => c.severity === "CRITICAL").length ?? 0),
+    0,
+  );
+  const highCount = reviews.reduce(
+    (n, r) => n + (r.comments?.filter((c) => c.severity === "HIGH").length ?? 0),
+    0,
+  );
 
   return (
     <div className="stats-grid cols-4" style={{ marginBottom: 22 }}>
@@ -144,37 +151,48 @@ function StatsRow({ reviews }: { reviews: Review[] }) {
           <ShieldCheck size={13} />
         </div>
         <div className="stat-value">{reviews.length}</div>
-        <div className="stat-foot">all time</div>
+        <div className="stat-foot" style={{ display: "flex", gap: 8 }}>
+          <span style={{ color: "var(--success)" }}>{completed} completed</span>
+          {failed > 0 && <span style={{ color: "var(--danger)" }}>{failed} failed</span>}
+        </div>
       </div>
       <div className="stat-card">
         <div className="stat-head">
-          <span>Completed</span>
+          <span>Success rate</span>
           <CheckCircle2 size={13} />
         </div>
-        <div className="stat-value" style={{ color: "var(--success)" }}>{completed}</div>
-        <div className="stat-foot">
-          {reviews.length > 0
-            ? `${Math.round((completed / reviews.length) * 100)}% success rate`
-            : "—"}
+        <div className="stat-value" style={{ color: "var(--success)" }}>
+          {reviews.length > 0 ? `${Math.round((completed / reviews.length) * 100)}%` : "—"}
         </div>
+        <div className="stat-foot">of reviews completed</div>
       </div>
       <div className="stat-card">
         <div className="stat-head">
-          <span>Failed</span>
-          <XCircle size={13} />
-        </div>
-        <div className="stat-value" style={{ color: failed > 0 ? "var(--danger)" : undefined }}>
-          {failed}
-        </div>
-        <div className="stat-foot">require retry</div>
-      </div>
-      <div className="stat-card">
-        <div className="stat-head">
-          <span>Findings</span>
+          <span>Total findings</span>
           <AlertTriangle size={13} />
         </div>
         <div className="stat-value">{totalComments}</div>
-        <div className="stat-foot">across all reviews</div>
+        <div className="stat-foot" style={{ display: "flex", gap: 8 }}>
+          {criticalCount > 0 && (
+            <span style={{ color: "var(--danger)", fontWeight: 600 }}>{criticalCount} critical</span>
+          )}
+          {highCount > 0 && (
+            <span style={{ color: "var(--danger)" }}>{highCount} high</span>
+          )}
+          {criticalCount === 0 && highCount === 0 && (
+            <span>no critical issues</span>
+          )}
+        </div>
+      </div>
+      <div className="stat-card">
+        <div className="stat-head">
+          <span>Need attention</span>
+          <XCircle size={13} />
+        </div>
+        <div className="stat-value" style={{ color: failed > 0 ? "var(--danger)" : "var(--muted)" }}>
+          {failed}
+        </div>
+        <div className="stat-foot">failed reviews to retry</div>
       </div>
     </div>
   );

@@ -292,6 +292,49 @@ function ReviewSidebar({
 
 // ─── Overview tab content ─────────────────────────────────────────────────────
 
+function SeverityBar({ comments }: { comments: ReviewComment[] }) {
+  const total = comments.length;
+  if (total === 0) return null;
+  const counts: Record<Severity, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+  for (const c of comments) counts[c.severity] = (counts[c.severity] ?? 0) + 1;
+  const segments: { sev: Severity; color: string; label: string }[] = [
+    { sev: "CRITICAL", color: "var(--danger)", label: "Critical" },
+    { sev: "HIGH",     color: "#e8798a",        label: "High" },
+    { sev: "MEDIUM",   color: "var(--warning)",  label: "Medium" },
+    { sev: "LOW",      color: "var(--muted)",    label: "Low" },
+  ];
+  return (
+    <div style={{ marginTop: 20 }}>
+      {/* Bar */}
+      <div style={{ display: "flex", height: 8, borderRadius: 99, overflow: "hidden", gap: 1 }}>
+        {segments.map(({ sev, color }) => {
+          const pct = (counts[sev] / total) * 100;
+          if (pct === 0) return null;
+          return (
+            <div
+              key={sev}
+              title={`${counts[sev]} ${sev}`}
+              style={{ height: "100%", width: `${pct}%`, background: color, transition: "width .3s ease" }}
+            />
+          );
+        })}
+      </div>
+      {/* Legend */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", marginTop: 10 }}>
+        {segments.map(({ sev, color, label }) =>
+          counts[sev] > 0 ? (
+            <span key={sev} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--muted)" }}>
+              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
+              <strong style={{ color, fontFamily: "var(--font-mono)" }}>{counts[sev]}</strong>
+              {label}
+            </span>
+          ) : null
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OverviewTab({
   review,
   retryError,
@@ -357,7 +400,12 @@ function OverviewTab({
               : "No summary available for this review."}
           </p>
         )}
-        {commentCount > 0 && <FindingCounts comments={review.comments!} />}
+        {commentCount > 0 && (
+          <>
+            <FindingCounts comments={review.comments!} />
+            <SeverityBar comments={review.comments!} />
+          </>
+        )}
       </div>
 
       {/* Top findings preview (up to 3) */}

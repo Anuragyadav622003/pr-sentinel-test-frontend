@@ -1,10 +1,18 @@
+/**
+ * badges.tsx
+ * Reusable badge/chip components for the PR Sentinel design system.
+ * Every badge conveys meaning through both color AND an icon (WCAG 1.4.1).
+ * All color values reference CSS custom properties — never hardcoded.
+ */
+
 import {
   AlertOctagon,
   AlertTriangle,
   CheckCircle2,
   CircleDashed,
   CircleDot,
-  Clock3,
+  Clock,
+  GitBranch,
   Loader2,
   XCircle,
 } from "lucide-react";
@@ -14,71 +22,95 @@ import type {
   Severity,
 } from "@/lib/api/types";
 
-/**
- * Status badges never rely on color alone — each carries an icon and a text
- * label so meaning is conveyed accessibly (WCAG 1.4.1).
- */
+// ─── PR Status ────────────────────────────────────────────────────────────────
 
-const PR_STATUS: Record<
+const PR_META: Record<
   PullRequestStatus,
-  { tone: string; label: string; Icon: typeof CircleDot; spin?: boolean }
+  { cls: string; label: string; Icon: React.ComponentType<{ size?: number; className?: string }> }
 > = {
-  RECEIVED: { tone: "neutral", label: "Received", Icon: CircleDashed },
-  PROCESSING: { tone: "info", label: "Processing", Icon: Loader2, spin: true },
-  REVIEWED: { tone: "success", label: "Reviewed", Icon: CheckCircle2 },
-  FAILED: { tone: "danger", label: "Failed", Icon: XCircle },
+  RECEIVED:   { cls: "badge badge-neutral", label: "Received",   Icon: CircleDashed },
+  PROCESSING: { cls: "badge badge-info",    label: "Processing", Icon: Loader2 },
+  REVIEWED:   { cls: "badge badge-success", label: "Reviewed",   Icon: CheckCircle2 },
+  FAILED:     { cls: "badge badge-danger",  label: "Failed",     Icon: XCircle },
 };
 
 export function PrStatusBadge({ status }: { status: PullRequestStatus }) {
-  const { tone, label, Icon, spin } = PR_STATUS[status];
+  const { cls, label, Icon } = PR_META[status];
   return (
-    <span className={`status-badge ${tone}`}>
-      <Icon size={12} className={spin ? "spin" : undefined} aria-hidden />
+    <span className={cls} role="status">
+      <Icon size={11} className={status === "PROCESSING" ? "spin" : undefined} aria-hidden />
       {label}
     </span>
   );
 }
 
-const REVIEW_STATUS: Record<
+// ─── Review Status ────────────────────────────────────────────────────────────
+
+const REVIEW_META: Record<
   ReviewStatus,
-  { tone: string; label: string; Icon: typeof CircleDot; spin?: boolean }
+  { cls: string; label: string; Icon: React.ComponentType<{ size?: number; className?: string }> }
 > = {
-  PENDING: { tone: "info", label: "Pending", Icon: Clock3 },
-  COMPLETED: { tone: "success", label: "Completed", Icon: CheckCircle2 },
-  FAILED: { tone: "danger", label: "Failed", Icon: XCircle },
+  PENDING:   { cls: "badge badge-info",    label: "Pending",   Icon: Clock },
+  COMPLETED: { cls: "badge badge-success", label: "Completed", Icon: CheckCircle2 },
+  FAILED:    { cls: "badge badge-danger",  label: "Failed",    Icon: XCircle },
 };
 
 export function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
-  const { tone, label, Icon } = REVIEW_STATUS[status];
+  const { cls, label, Icon } = REVIEW_META[status];
   return (
-    <span className={`status-badge ${tone}`}>
-      <Icon size={12} aria-hidden />
+    <span className={cls} role="status">
+      <Icon size={11} aria-hidden />
       {label}
     </span>
   );
 }
 
-const SEVERITY: Record<
+// ─── Severity ─────────────────────────────────────────────────────────────────
+
+const SEV_META: Record<
   Severity,
-  { tone: string; label: string; Icon: typeof CircleDot }
+  { cls: string; label: string; Icon: React.ComponentType<{ size?: number }> }
 > = {
-  CRITICAL: { tone: "critical", label: "Critical", Icon: AlertOctagon },
-  HIGH: { tone: "danger", label: "High", Icon: AlertTriangle },
-  MEDIUM: { tone: "warning", label: "Medium", Icon: AlertTriangle },
-  LOW: { tone: "neutral", label: "Low", Icon: CircleDot },
+  CRITICAL: { cls: "badge badge-critical", label: "Critical", Icon: AlertOctagon },
+  HIGH:     { cls: "badge badge-high",     label: "High",     Icon: AlertTriangle },
+  MEDIUM:   { cls: "badge badge-medium",   label: "Medium",   Icon: AlertTriangle },
+  LOW:      { cls: "badge badge-low",      label: "Low",      Icon: CircleDot },
 };
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
-  const { tone, label, Icon } = SEVERITY[severity];
+  const { cls, label, Icon } = SEV_META[severity];
   return (
-    <span className={`severity-badge ${tone}`}>
-      <Icon size={12} aria-hidden />
+    <span className={cls}>
+      <Icon size={11} aria-hidden />
       {label}
     </span>
   );
 }
 
-/** GitHub comment posting status: posted / not posted / posting / failed. */
+/** Inline risk chip — compact pill used in table rows. */
+export function RiskChip({ severity }: { severity: Severity | null | undefined }) {
+  if (!severity) return null;
+  const clsMap: Record<Severity, string> = {
+    CRITICAL: "risk-chip critical",
+    HIGH:     "risk-chip high",
+    MEDIUM:   "risk-chip medium",
+    LOW:      "risk-chip low",
+  };
+  return <span className={clsMap[severity]}>{severity}</span>;
+}
+
+/** Clean result chip — shown when a review has zero findings. */
+export function CleanChip() {
+  return (
+    <span className="risk-chip clean">
+      <CheckCircle2 size={10} aria-hidden />
+      Clean
+    </span>
+  );
+}
+
+// ─── GitHub posting status ────────────────────────────────────────────────────
+
 export function PostedBadge({
   state,
 }: {
@@ -87,31 +119,68 @@ export function PostedBadge({
   switch (state) {
     case "posted":
       return (
-        <span className="posted-badge success">
-          <CheckCircle2 size={12} aria-hidden />
-          Posted to GitHub
+        <span className="badge badge-success">
+          <CheckCircle2 size={11} aria-hidden /> Posted to GitHub
         </span>
       );
     case "posting":
       return (
-        <span className="posted-badge info">
-          <Loader2 size={12} className="spin" aria-hidden />
-          Posting to GitHub…
+        <span className="badge badge-info">
+          <Loader2 size={11} className="spin" aria-hidden /> Posting…
         </span>
       );
     case "failed":
       return (
-        <span className="posted-badge danger">
-          <AlertTriangle size={12} aria-hidden />
-          Failed to post
+        <span className="badge badge-danger">
+          <AlertTriangle size={11} aria-hidden /> Failed to post
         </span>
       );
     default:
       return (
-        <span className="posted-badge neutral">
-          <CircleDashed size={12} aria-hidden />
-          Not posted
+        <span className="badge badge-neutral">
+          <CircleDashed size={11} aria-hidden /> Not posted
         </span>
       );
   }
+}
+
+// ─── Connection status badge ──────────────────────────────────────────────────
+
+export function ConnectionBadge({
+  connected,
+  checking,
+}: {
+  connected: boolean;
+  checking?: boolean;
+}) {
+  if (checking) {
+    return (
+      <span className="badge badge-neutral">
+        <Loader2 size={11} className="spin" aria-hidden /> Checking…
+      </span>
+    );
+  }
+  return connected ? (
+    <span className="badge badge-success">
+      <GitBranch size={11} aria-hidden /> Connected
+    </span>
+  ) : (
+    <span className="badge badge-danger">
+      <GitBranch size={11} aria-hidden /> Not connected
+    </span>
+  );
+}
+
+// ─── Active / Inactive badge ──────────────────────────────────────────────────
+
+export function ActiveBadge({ active }: { active: boolean }) {
+  return active ? (
+    <span className="badge badge-success">
+      <CircleDot size={11} aria-hidden /> Active
+    </span>
+  ) : (
+    <span className="badge badge-neutral">
+      <CircleDashed size={11} aria-hidden /> Inactive
+    </span>
+  );
 }

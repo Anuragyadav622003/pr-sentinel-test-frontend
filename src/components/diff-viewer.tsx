@@ -3,136 +3,107 @@
 import { useMemo } from "react";
 import type { ReviewComment, Severity } from "@/lib/api/types";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type DiffLine = {
   key: string;
   kind: "add" | "del" | "ctx" | "meta";
   oldNum: number | null;
   newNum: number | null;
   text: string;
-  highlighted?: Severity;
+  findings: ReviewComment[];
 };
 
-function parsePatch(
-  patch: string,
-  highlights: Map<number, Severity>,
-): DiffLine[] {
+// ─── Parser ───────────────────────────────────────────────────────────────────
+
+function parsePatch(patch: string, findingsByLine: Map<number, ReviewComment[]>): DiffLine[] {
   const lines: DiffLine[] = [];
   let oldLine = 0;
   let newLine = 0;
-  const rawLines = patch.split("\n");
 
-  for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i] ?? "";
+  for (let i = 0, raw = patch.split("\n"); i < raw.length; i++) {
+    const line = raw[i] ?? "";
 
     if (line.startsWith("@@")) {
-      const match = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-      if (match) {
-        oldLine = Number(match[1]);
-        newLine = Number(match[2]);
-      }
-      lines.push({
-        key: `meta-${i}`,
-        kind: "meta",
-        oldNum: null,
-        newNum: null,
-        text: line,
-      });
+      const m = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+      if (m) { oldLine = Number(m[1]); newLine = Number(m[2]); }
+      lines.push({ key: `meta-${i}`, kind: "meta", oldNum: null, newNum: null, text: line, findings: [] });
       continue;
     }
-
-    if (line.startsWith("+")) {
-      const sev = highlights.get(newLine);
-      lines.push({
-        key: `add-${i}`,
-        kind: "add",
-        oldNum: null,
-        newNum: newLine,
-        text: line.slice(1),
-        highlighted: sev,
-      });
-      newLine += 1;
-      continue;
-    }
-
-    if (line.startsWith("-")) {
-      lines.push({
-        key: `del-${i}`,
-        kind: "del",
-        oldNum: oldLine,
-        newNum: null,
-        text: line.slice(1),
-      });
-      oldLine += 1;
-      continue;
-    }
-
     if (line.startsWith("\\")) {
-      lines.push({
-        key: `ctx-${i}`,
-        kind: "meta",
-        oldNum: null,
-        newNum: null,
-        text: line,
-      });
+      lines.push({ key: `noeol-${i}`, kind: "meta", oldNum: null, newNum: null, text: line, findings: [] });
       continue;
     }
-
-    lines.push({
-      key: `ctx-${i}`,
-      kind: "ctx",
-      oldNum: oldLine,
-      newNum: newLine,
-      text: line.startsWith(" ") ? line.slice(1) : line,
-    });
-    oldLine += 1;
-    newLine += 1;
+    if (line.startsWith("+")) {
+      const n = newLine;
+      lines.push({ key: `add-${i}`, kind: "add", oldNum: null, newNum: n, text: line.slice(1), findings: findingsByLine.get(n) ?? [] });
+      newLine++;
+      continue;
+    }
+    if (line.startsWith("-")) {
+      lines.push({ key: `del-${i}`, kind: "del", oldNum: oldLine, newNum: null, text: line.slice(1), findings: [] });
+      oldLine++;
+      continue;
+    }
+    lines.push({ key: `ctx-${i}`, kind: "ctx", oldNum: oldLine, newNum: newLine, text: line.startsWith(" ") ? line.slice(1) : line, findings: [] });
+    oldLine++;
+    newLine++;
   }
-
   return lines;
 }
 
-function severityClass(severity?: Severity) {
-  if (!severity) return "";
-  const map: Record<Severity, string> = {
-    CRITICAL: "diff-highlight-critical",
-    HIGH: "diff-highlight-high",
-    MEDIUM: "diff-highlight-medium",
-    LOW: "diff-highlight-low",
-  };
-  return map[severity];
+// ─── Severity helpers ─────────────────────────────────────────────────────────
+
+function topSeverity(findings: ReviewComment[]): Severity | null {
+  const order: Severity[] = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+  for (const s of order) {
+    if (findings.some((f) => f.severity === s)) return s;
+  }
+  return null;
 }
 
-function lineSign(kind: DiffLine["kind"]) {
-  if (kind === "add") return "+";
-  if (kind === "del") return "−";
-  return " ";
+function severityRowClass(sev: Severity): string {
+  return `diff-highlight-${sev.toLowerCase()}`;
 }
+
+const SEV_COLOR: Record<Severity, string> = {
+  CRITICAL: "var(--sev-critical)",
+  HIGH:     "var(--sev-high)",
+  MEDIUM:   "var(--sev-medium)",
+  LOW:      "var(--sev-low)",
+};
+
+// ─── DiffViewer ───────────────────────────────────────────────────────────────
 
 export function DiffViewer({
   patch,
   findings = [],
+  onFindingClick,
 }: {
   patch: string | null | undefined;
   findings?: ReviewComment[];
+  /** Called when user clicks a finding pill — useful to jump to findings tab */
+  onFindingClick?: (finding: ReviewComment) => void;
 }) {
-  const highlights = useMemo(() => {
-    const map = new Map<number, Severity>();
+  const findingsByLine = useMemo(() => {
+    const map = new Map<number, ReviewComment[]>();
     for (const f of findings) {
-      if (f.lineNumber != null && f.severity) {
-        map.set(f.lineNumber, f.severity);
+      if (f.lineNumber != null) {
+        if (!map.has(f.lineNumber)) map.set(f.lineNumber, []);
+        map.get(f.lineNumber)!.push(f);
       }
     }
     return map;
   }, [findings]);
 
   const lines = useMemo(
-    () => (patch ? parsePatch(patch, highlights) : []),
-    [patch, highlights],
+    () => (patch ? parsePatch(patch, findingsByLine) : []),
+    [patch, findingsByLine],
   );
 
   if (!patch) {
     return (
-      <div className="diff-empty">
+      <div className="diff-empty" role="region" aria-label="No diff available">
         <p>No diff available for this file.</p>
         <small>The patch was not stored or the file has no content changes.</small>
       </div>
@@ -141,36 +112,63 @@ export function DiffViewer({
 
   return (
     <div className="diff-scroll-wrap" role="region" aria-label="File diff">
-      <table className="diff-table">
+      <table className="diff-table" aria-label="Code diff">
         <tbody>
-          {lines.map((line) =>
-            line.kind === "meta" ? (
-              <tr key={line.key} className="diff-row diff-row-meta">
-                <td colSpan={3} className="diff-hunk">
-                  {line.text}
+          {lines.map((line) => {
+            if (line.kind === "meta") {
+              return (
+                <tr key={line.key} className="diff-row diff-row-meta">
+                  <td colSpan={3} className="diff-hunk">{line.text}</td>
+                </tr>
+              );
+            }
+
+            const top = line.findings.length > 0 ? topSeverity(line.findings) : null;
+            const rowCls = [
+              "diff-row",
+              `diff-row-${line.kind}`,
+              top ? severityRowClass(top) : "",
+            ].join(" ").trim();
+
+            return (
+              <tr key={line.key} className={rowCls}>
+                <td className="diff-gutter diff-gutter-old" aria-hidden>
+                  {line.oldNum ?? ""}
                 </td>
-              </tr>
-            ) : (
-              <tr
-                key={line.key}
-                className={`diff-row diff-row-${line.kind} ${severityClass(line.highlighted)}`}
-              >
-                <td className="diff-gutter diff-gutter-old">{line.oldNum ?? ""}</td>
-                <td className="diff-gutter diff-gutter-new">{line.newNum ?? ""}</td>
+                <td className="diff-gutter diff-gutter-new" aria-hidden>
+                  {line.newNum ?? ""}
+                </td>
                 <td className="diff-code">
-                  <span className={`diff-sign diff-sign-${line.kind}`} aria-hidden>
-                    {lineSign(line.kind)}
+                  <span
+                    className={`diff-sign ${line.kind === "add" ? "add" : line.kind === "del" ? "del" : ""}`}
+                    aria-hidden
+                  >
+                    {line.kind === "add" ? "+" : line.kind === "del" ? "−" : " "}
                   </span>
                   <code className="diff-code-text">{line.text || " "}</code>
-                  {line.highlighted && (
-                    <span className={`diff-finding-pill ${severityClass(line.highlighted)}`}>
-                      {line.highlighted}
-                    </span>
-                  )}
+                  {/* Finding pills — one per finding on this line */}
+                  {line.findings.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className="diff-finding-pill"
+                      style={{
+                        background: f.severity ? `${SEV_COLOR[f.severity]}22` : undefined,
+                        color: f.severity ? SEV_COLOR[f.severity] : undefined,
+                        border: `1px solid ${f.severity ? SEV_COLOR[f.severity] : "transparent"}44`,
+                        cursor: onFindingClick ? "pointer" : "default",
+                      }}
+                      title={f.message}
+                      aria-label={`${f.severity} finding: ${f.message}`}
+                      onClick={() => onFindingClick?.(f)}
+                    >
+                      {f.severity ?? "FINDING"}
+                    </button>
+                  ))}
                 </td>
               </tr>
-            ),
-          )}
+            );
+          })}
         </tbody>
       </table>
     </div>

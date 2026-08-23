@@ -1,21 +1,59 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { GitPullRequest } from "lucide-react";
-import { PrStatusBadge } from "@/components/ui/badges";
-import type { PullRequest } from "@/lib/api/types";
+import { GitPullRequest, MapPin } from "lucide-react";
+import { PrStatusBadge, ReviewStatusBadge } from "@/components/ui/badges";
+import type { PullRequest, Severity } from "@/lib/api/types";
 
-function reviewCell(pr: PullRequest): string {
-  if (pr.status !== "REVIEWED") return "—";
-  const count = pr.review?.comments?.length;
-  if (typeof count === "number") {
-    return `${count} comment${count === 1 ? "" : "s"}`;
+const SEV_ORDER: Severity[] = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+
+function topSeverity(pr: PullRequest): Severity | null {
+  const comments = pr.review?.comments ?? [];
+  for (const sev of SEV_ORDER) {
+    if (comments.some((c) => c.severity === sev)) return sev;
   }
-  return "Reviewed";
+  return null;
 }
 
-function repoLabel(pr: PullRequest): string {
-  return pr.repository?.name ?? pr.repository?.fullName ?? "—";
+function RiskCell({ pr }: { pr: PullRequest }) {
+  const comments = pr.review?.comments ?? [];
+  const total = comments.length;
+
+  if (pr.status !== "REVIEWED" || !pr.review) {
+    return <span style={{ color: "var(--text-tertiary)", fontSize: "var(--text-xs)" }}>—</span>;
+  }
+
+  if (total === 0) {
+    return <span className="risk-chip clean">✓ Clean</span>;
+  }
+
+  const top = topSeverity(pr);
+  const countMap: Partial<Record<Severity, number>> = {};
+  for (const c of comments) {
+    countMap[c.severity] = (countMap[c.severity] ?? 0) + 1;
+  }
+
+  const clsMap: Record<Severity, string> = {
+    CRITICAL: "risk-chip critical",
+    HIGH:     "risk-chip high",
+    MEDIUM:   "risk-chip medium",
+    LOW:      "risk-chip low",
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "var(--sp-1)", flexWrap: "wrap", alignItems: "center" }}>
+      {top && (
+        <span className={clsMap[top]}>
+          {countMap[top]} {top.charAt(0) + top.slice(1).toLowerCase()}
+        </span>
+      )}
+      {total > (countMap[top!] ?? 0) && (
+        <span style={{ color: "var(--text-tertiary)", fontSize: 10 }}>
+          +{total - (countMap[top!] ?? 0)} more
+        </span>
+      )}
+    </div>
+  );
 }
 
 export default function PrTable({
@@ -39,9 +77,10 @@ export default function PrTable({
             <tr>
               <th scope="col">Pull request</th>
               {showRepo && <th scope="col">Repository</th>}
-              <th scope="col">Author</th>
               <th scope="col">Status</th>
               <th scope="col">Review</th>
+              <th scope="col">Risk</th>
+              <th scope="col">Updated</th>
             </tr>
           </thead>
           <tbody>
@@ -57,30 +96,49 @@ export default function PrTable({
                     open(pr.id);
                   }
                 }}
-                aria-label={`Open pull request #${pr.githubPrNumber}: ${pr.title}`}
+                aria-label={`Open PR #${pr.githubPrNumber}: ${pr.title}`}
               >
-                <td>
+                <td style={{ maxWidth: 340 }}>
                   <div className="cell-pr">
-                    <span className="pr-num">#{pr.githubPrNumber}</span>
-                    <strong>{pr.title}</strong>
-                    <small>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)" }}>
+                      <GitPullRequest size={13} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} aria-hidden />
+                      <strong style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {pr.title}
+                      </strong>
+                    </div>
+                    <span className="pr-num">
+                      #{pr.githubPrNumber}
+                      {pr.author && ` · ${pr.author}`}
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--text-tertiary)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
+                      <MapPin size={9} aria-hidden />
                       {pr.headBranch} → {pr.baseBranch}
-                    </small>
+                    </span>
                   </div>
                 </td>
                 {showRepo && (
                   <td>
                     <span className="cell-repo">
-                      <GitPullRequest size={13} />
-                      {repoLabel(pr)}
+                      {pr.repository?.name ?? pr.repository?.fullName ?? "—"}
                     </span>
                   </td>
                 )}
-                <td>{pr.author}</td>
+                <td><PrStatusBadge status={pr.status} /></td>
                 <td>
-                  <PrStatusBadge status={pr.status} />
+                  {pr.review ? (
+                    <ReviewStatusBadge status={pr.review.status} />
+                  ) : (
+                    <span style={{ color: "var(--text-tertiary)", fontSize: "var(--text-xs)" }}>—</span>
+                  )}
                 </td>
-                <td>{reviewCell(pr)}</td>
+                <td><RiskCell pr={pr} /></td>
+                <td style={{ color: "var(--text-tertiary)", fontSize: "var(--text-xs)", whiteSpace: "nowrap" }}>
+                  {new Date(pr.updatedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </td>
               </tr>
             ))}
           </tbody>

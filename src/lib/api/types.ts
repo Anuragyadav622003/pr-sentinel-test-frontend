@@ -173,7 +173,31 @@ export interface ChatBubble {
   content: string;
 }
 
-// ─── Filters ─────────────────────────────────────────────────────────────────
+// ─── LLM / AI model types ─────────────────────────────────────────────────────
+
+export type LlmMode = "FREE" | "BYOK";
+
+export type LlmProvider = "OPENROUTER" | "OPENAI" | "GEMINI" | "ANTHROPIC";
+
+/** A single BYOK provider config returned by GET /llm/config */
+export interface LlmConfig {
+  id: string;
+  provider: LlmProvider;
+  model: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  /** apiKey is never returned by the backend — stored encrypted server-side */
+}
+
+/** Response shape for GET /llm/mode */
+export interface LlmModeStatus {
+  llmMode: LlmMode;
+  /** Only present when llmMode === "FREE" */
+  remainingFree?: number;
+}
+
+
 
 export interface PullRequestFilters {
   repositoryId?: string;

@@ -1,22 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GitBranch, GitPullRequest, Loader2, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  GitBranch,
+  GitPullRequest,
+  RefreshCw,
+} from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
 import PrTable from "@/components/pr-table";
-import { EmptyState, ErrorState, SkeletonRows } from "@/components/ui/states";
+import { EmptyState, ErrorState, NoResults, SkeletonRows } from "@/components/ui/states";
 import { usePullRequests } from "@/lib/api/hooks";
 import { useGitHubConnection } from "@/lib/store";
 import type { PullRequestStatus } from "@/lib/api/types";
 
-const STATUS_OPTIONS: Array<PullRequestStatus | "ALL"> = [
-  "ALL",
-  "RECEIVED",
-  "PROCESSING",
-  "REVIEWED",
-  "FAILED",
+const STATUS_OPTIONS: Array<{ value: PullRequestStatus | "ALL"; label: string }> = [
+  { value: "ALL",        label: "All statuses" },
+  { value: "RECEIVED",   label: "Received" },
+  { value: "PROCESSING", label: "Processing" },
+  { value: "REVIEWED",   label: "Reviewed" },
+  { value: "FAILED",     label: "Failed" },
 ];
 
 export default function PullRequestsPage() {
@@ -41,68 +46,88 @@ export default function PullRequestsPage() {
     });
   }, [pullRequests, search, statusFilter]);
 
+  const failedCount = useMemo(
+    () => (pullRequests ?? []).filter((p) => p.status === "FAILED").length,
+    [pullRequests],
+  );
+
+  const hasFilters = search || statusFilter !== "ALL";
+
   return (
-    <DashboardShell title="Pull requests" eyebrow="PULL REQUESTS">
+    <DashboardShell title="Pull Requests" eyebrow="PULL REQUESTS">
       <div className="page-stack">
-        <div className="data-header">
+        <div className="page-header">
           <div>
-            <h1 className="text-balance">Pull requests</h1>
-            <p className="text-pretty">
-              Every pull request tracked by PR Sentinel across your connected repositories.
-            </p>
+            <h1>Pull Requests</h1>
+            <p>Every pull request tracked by PR Sentinel across your connected repositories.</p>
           </div>
-          <div className="header-actions">
+          <div className="page-header-actions">
             <button
-              className="secondary-button"
+              className="btn btn-secondary"
               onClick={() => refresh()}
-              disabled={isLoading || github.isFetching}
+              disabled={isLoading}
+              aria-label="Refresh pull requests"
             >
-              <RefreshCw size={15} />
+              <RefreshCw size={14} className={isLoading ? "spin" : undefined} />
               Refresh
             </button>
           </div>
         </div>
 
+        {/* Failed callout */}
+        {!isLoading && failedCount > 0 && (
+          <div className="notice danger" role="alert">
+            <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>
+              <strong>{failedCount} pull request{failedCount !== 1 ? "s" : ""}</strong> failed to process.
+              {" "}
+              <button
+                className="link-btn"
+                style={{ color: "var(--danger)" }}
+                onClick={() => setStatusFilter("FAILED")}
+              >
+                Show failed <ArrowRight size={12} />
+              </button>
+            </span>
+          </div>
+        )}
+
         {github.isChecking ? (
-          <section className="panel-scroll-card">
-            <div className="panel-scroll-header">
-              <h2>Loading pull requests…</h2>
-            </div>
-            <SkeletonRows rows={5} />
-          </section>
+          <div className="panel">
+            <div className="panel-header"><h2>Loading pull requests…</h2></div>
+            <div className="panel-body"><SkeletonRows rows={5} /></div>
+          </div>
         ) : !github.connected ? (
           <EmptyState
-            icon={<GitBranch size={18} />}
-            title="Connect GitHub to get started"
-            body="Install the PR Sentinel GitHub App and select repositories to begin receiving automatic pull request reviews."
-            action={{ label: "Connect GitHub", href: "/dashboard/github" }}
+            icon={<GitBranch size={22} />}
+            eyebrow="NOT CONNECTED"
+            title="Connect GitHub to start monitoring"
+            body="Install the PR Sentinel GitHub App and select repositories to begin receiving automatic AI code reviews."
+            actions={[{ label: "Connect GitHub", href: "/dashboard/github" }]}
           />
         ) : error ? (
           <ErrorState error={error} onRetry={() => refresh()} resourceLabel="pull requests" />
         ) : (
           <>
+            {/* Filter bar */}
             <div className="filter-bar">
               <input
                 className="filter-input"
                 type="search"
-                placeholder="Search pull requests…"
+                placeholder="Search by title, author, or repo…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 aria-label="Search pull requests"
               />
-              <div className="filter-select">
-                <GitPullRequest size={13} style={{ color: "var(--muted)" }} />
+              <div className="filter-select-wrap">
+                <GitPullRequest size={13} style={{ color: "var(--text-tertiary)" }} aria-hidden />
                 <select
                   value={statusFilter}
-                  onChange={(e) =>
-                    setStatusFilter(e.target.value as PullRequestStatus | "ALL")
-                  }
+                  onChange={(e) => setStatusFilter(e.target.value as PullRequestStatus | "ALL")}
                   aria-label="Filter by status"
                 >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option === "ALL" ? "All statuses" : option}
-                    </option>
+                  {STATUS_OPTIONS.map(({ value, label }) => (
+                    <option key={value} value={value}>{label}</option>
                   ))}
                 </select>
               </div>
@@ -111,33 +136,40 @@ export default function PullRequestsPage() {
                   {filtered.length} {filtered.length === 1 ? "pull request" : "pull requests"}
                 </span>
               )}
+              {hasFilters && (
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => { setSearch(""); setStatusFilter("ALL"); }}
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
 
-            <section className="panel-scroll-card">
-              <div className="panel-scroll-header">
-                <div>
-                  <h2>Review queue</h2>
-                  <p>Click a pull request to open its detail and review status.</p>
-                </div>
-              </div>
-              <div className="panel-scroll-body">
-                {isLoading ? (
-                  <SkeletonRows rows={6} />
-                ) : filtered.length === 0 ? (
-                  <EmptyState
-                    icon={<GitPullRequest size={18} />}
-                    title="No pull requests yet"
-                    body="Open a pull request in one of your connected repositories and PR Sentinel will review it automatically."
-                    action={{
-                      label: "View repositories",
-                      onClick: () => router.push("/dashboard/repositories"),
-                    }}
-                  />
-                ) : (
-                  <PrTable pullRequests={filtered} />
-                )}
-              </div>
-            </section>
+            {/* Table */}
+            {isLoading ? (
+              <SkeletonRows rows={6} />
+            ) : filtered.length === 0 ? (
+              hasFilters ? (
+                <NoResults
+                  query={search}
+                  onClear={() => { setSearch(""); setStatusFilter("ALL"); }}
+                />
+              ) : (
+                <EmptyState
+                  icon={<GitPullRequest size={22} />}
+                  title="No pull requests yet"
+                  body="Open a pull request in one of your connected repositories and PR Sentinel will review it automatically."
+                  actions={[{
+                    label: "View repositories",
+                    onClick: () => router.push("/dashboard/repositories"),
+                    variant: "secondary",
+                  }]}
+                />
+              )
+            ) : (
+              <PrTable pullRequests={filtered} />
+            )}
           </>
         )}
       </div>
