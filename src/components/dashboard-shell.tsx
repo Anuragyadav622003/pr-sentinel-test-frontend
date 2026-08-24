@@ -174,7 +174,7 @@ export default function DashboardShell({
   }, [router]);
 
   useEffect(() => {
-    setMobileNav(false);
+    setMobileOpen(false);
     setMenuOpen(false);
   }, [pathname]);
 
@@ -240,10 +240,10 @@ export default function DashboardShell({
 
   return (
     <div className={isDark ? "app-shell" : "app-shell light-mode"}>
-      {mobileNav && (
-        <div className="drawer-backdrop mobile-only" onClick={() => setMobileNav(false)} />
+      {mobileOpen && (
+        <div className="drawer-backdrop mobile-only" onClick={() => setMobileOpen(false)} />
       )}
-      <aside className={`sidebar ${mobileNav ? "sidebar-open" : ""}`}>
+      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
         <div className="brand-row">
           <div className="brand-mark">
             <Sparkles size={16} strokeWidth={2.5} />
