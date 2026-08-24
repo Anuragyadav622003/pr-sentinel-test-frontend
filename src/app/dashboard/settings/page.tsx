@@ -493,7 +493,7 @@ function LlmModelSection() {
 
   const isByok = modeStatus?.llmMode === "BYOK";
   const freeRemaining = modeStatus?.remainingFree;
-  const dailyLimit = 5; // mirrors FREE_REVIEWS_PER_USER_PER_DAY default
+  const dailyLimit = 10; // mirrors FREE_REVIEWS_PER_USER_PER_DAY default
 
   return (
     <div>
