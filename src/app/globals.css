@@ -220,8 +220,16 @@ img, svg { display: block; }
 /* Product polish */
 .app-shell { background: var(--bg); }
 .sidebar { background: var(--surface); box-shadow: 10px 0 30px color-mix(in srgb, var(--bg) 45%, transparent); }
-.main-content { min-width: 0; }
+.main-content { min-width: 0; min-height: 0; }
 .topbar { background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); }
+.brand-row { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; padding: var(--sp-4) var(--sp-3) var(--sp-3); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+.brand-row .brand-name { min-width: 0; white-space: nowrap; }
+.brand-row .btn { margin-left: auto !important; }
+.global-search { min-width: 0; }
+.global-search input { min-width: 0; }
+.global-search kbd { flex: 0 0 auto; white-space: nowrap; }
+.page-scroll, .page-scroll--focus { min-height: 0; scrollbar-width: none; }
+.page-content { min-height: 100%; }
 .page-stack, .content-wrap { animation: page-enter .35s ease both; }
 @keyframes page-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .stat-card, .panel, .workspace-panel, .review-card { box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 4%, transparent), 0 14px 34px color-mix(in srgb, var(--bg) 30%, transparent); transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
@@ -618,8 +626,22 @@ img, svg { display: block; }
 /* ═══════════════════════════════════════════════════════════════════════════
    COMMON LAYOUT UTILITIES
    ═══════════════════════════════════════════════════════════════════════ */
-.page-stack   { display: flex; flex-direction: column; gap: var(--sp-4); }
-.row          { display: flex; align-items: center; gap: var(--sp-3); }
+  .page-stack   { display: flex; flex-direction: column; gap: var(--sp-5); }
+  .row          { display: flex; align-items: center; gap: var(--sp-3); }
+  .page-stack > *, .content-wrap > * { min-width: 0; }
+  .panel, .card, .detail-card, .github-hero, .panel-scroll-card { box-sizing: border-box; }
+  .panel-header, .panel-scroll-header { padding: var(--sp-5) var(--sp-6); }
+  .panel-body, .panel-scroll-body { min-width: 0; }
+  .panel-scroll-body { max-height: min(58vh, 620px); overflow-y: auto; overscroll-behavior: contain; }
+  .panel-scroll-body .file-list { padding: var(--sp-2) 0; }
+  .file-row { padding: var(--sp-3) var(--sp-6); }
+  .file-row > * { min-width: 0; }
+  .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .data-header { gap: var(--sp-6); align-items: flex-start; }
+  .data-header > div:first-child { min-width: 0; }
+  .data-header h1, .data-header h2 { margin-bottom: var(--sp-2); }
+  .data-header p { color: var(--text-secondary); line-height: var(--leading-normal); }
+  .header-actions, .button-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .row--between { justify-content: space-between; }
 .col          { display: flex; flex-direction: column; gap: var(--sp-3); }
 
@@ -1014,7 +1036,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 
 /* ═══════════════════════════════════════════��═══════════════════════════════
    DETAIL LAYOUT (2-column: main + sidebar)
-   ═══════════════════════════════════════════════════════════════════════ */
+   ���══════════════════════════════════════════════════════════════════════ */
 .detail-grid {
   display: grid;
   grid-template-columns: minmax(0,1fr) 300px;
@@ -1469,7 +1491,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .info-tile .label { color: var(--text-tertiary); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
 .info-tile .value { margin-top: var(--sp-2); font-size: var(--text-md); font-weight: 650; }
 
-/* ══���════════════════════════════════════════════════════════════════════════
+/* ══���═════════════���══════════════════════════════════════════════════════════
    PR WORKSPACE
    ═══════════════════════════════════════════════════════════════════════ */
 .pr-workspace        { display: flex; flex-direction: column; gap: var(--sp-3); min-height: 0; flex: 1; }
@@ -1619,11 +1641,11 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
     transform: translateX(-100%);
     box-shadow: var(--shadow-lg);
   }
-  .sidebar.open { transform: translateX(0); }
-  .sidebar-backdrop {
-    position: fixed; inset: 0; z-index: 20;
-    background: rgba(0,0,0,.5);
-    backdrop-filter: blur(2px);
+  .sidebar.open, .sidebar.sidebar-open { transform: translateX(0); }
+  .sidebar-backdrop, .drawer-backdrop {
+  position: fixed; inset: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 58%, transparent);
+  backdrop-filter: blur(2px);
   }
   .topbar { padding: 0 var(--sp-4); }
   .page-content { padding: var(--sp-5) var(--sp-4); }
