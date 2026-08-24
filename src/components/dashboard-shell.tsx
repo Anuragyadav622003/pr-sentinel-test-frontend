@@ -32,6 +32,7 @@ import { useGitHubConnection } from "@/lib/store";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { baseApi } from "@/lib/store/baseApi";
 import { resetGitHubState } from "@/lib/store/githubSlice";
+import { useTheme } from "@/components/theme-provider";
 
 // ─── Navigation config ────────────────────────────────────────────────────────
 
@@ -47,20 +48,6 @@ const MANAGE_NAV = [
   { label: "GitHub",    href: "/dashboard/github",   icon: GitBranch },
   { label: "Settings",  href: "/dashboard/settings", icon: Settings2 },
 ] as const;
-
-// ─── Theme hook ───────────────────────────────────────────────────────────────
-
-function useTheme() {
-  const [isDark, setIsDark] = useState(true);
-  useEffect(() => {
-    const saved = localStorage.getItem("pr_sentinel_theme");
-    if (saved) setIsDark(saved === "dark");
-  }, []);
-  useEffect(() => {
-    localStorage.setItem("pr_sentinel_theme", isDark ? "dark" : "light");
-  }, [isDark]);
-  return { isDark, toggle: () => setIsDark((v) => !v) };
-}
 
 // ─── GitHub health indicator ──────────────────────────────────────────────────
 
