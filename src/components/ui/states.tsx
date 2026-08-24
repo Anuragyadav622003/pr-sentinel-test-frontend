@@ -142,6 +142,7 @@ export function EmptyState({
   title,
   body,
   actions,
+  action,
   compact,
 }: {
   icon?: React.ReactNode;
@@ -149,8 +150,11 @@ export function EmptyState({
   title: string;
   body: string;
   actions?: EmptyStateAction[];
+  /** Backwards-compatible single-action API. */
+  action?: EmptyStateAction;
   compact?: boolean;
 }) {
+  const resolvedActions = actions ?? (action ? [action] : undefined);
   return (
     <div
       className="state-wrap"
@@ -173,9 +177,9 @@ export function EmptyState({
       )}
       <h2 className="state-title">{title}</h2>
       <p className="state-body">{body}</p>
-      {actions && actions.length > 0 && (
+      {resolvedActions && resolvedActions.length > 0 && (
         <div className="state-actions">
-          {actions.map((action, i) => {
+          {resolvedActions.map((action, i) => {
             const cls = `btn ${action.variant === "secondary" ? "btn-secondary" : "btn-primary"}`;
             return action.href ? (
               <Link key={i} href={action.href} className={cls}>
