@@ -173,6 +173,11 @@ export default function DashboardShell({
     }
   }, [router]);
 
+  useEffect(() => {
+    setMobileNav(false);
+    setMenuOpen(false);
+  }, [pathname]);
+
   // Close popover on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -235,25 +240,14 @@ export default function DashboardShell({
 
   return (
     <div className={isDark ? "app-shell" : "app-shell light-mode"}>
-      {/* Mobile backdrop */}
-      {mobileOpen && (
-        <div
-          className="sidebar-backdrop"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden
-        />
+      {mobileNav && (
+        <div className="drawer-backdrop mobile-only" onClick={() => setMobileNav(false)} />
       )}
-
-      {/* ── Sidebar ── */}
-      <aside
-        className={`sidebar${mobileOpen ? " open" : ""}`}
-        aria-label="Main navigation"
-      >
-        {/* Brand */}
-        <div className="sidebar-header">
-          <Link href="/dashboard" className="brand-mark" aria-label="PR Sentinel home">
-            <Sparkles size={14} strokeWidth={2.5} />
-          </Link>
+      <aside className={`sidebar ${mobileNav ? "sidebar-open" : ""}`}>
+        <div className="brand-row">
+          <div className="brand-mark">
+            <Sparkles size={16} strokeWidth={2.5} />
+          </div>
           <span className="brand-name">
             pr<em>·</em>sentinel
           </span>
@@ -339,16 +333,8 @@ export default function DashboardShell({
                 <Menu size={15} />
               </button>
               {menuOpen && (
-                <div
-                  className="popover"
-                  role="menu"
-                  style={{ bottom: 36, right: 0 }}
-                >
-                  <button
-                    className="popover-item danger"
-                    role="menuitem"
-                    onClick={handleSignOut}
-                  >
+                <div className="user-menu" role="menu">
+                  <button role="menuitem" onClick={handleSignOut}>
                     <LogOut size={14} />
                     Sign out
                   </button>
