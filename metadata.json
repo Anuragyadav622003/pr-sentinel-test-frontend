@@ -1,0 +1,6 @@
+{
+  "name": "PR Sentinel",
+  "description": "Prioritize pull request reviews with risk-aware engineering intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

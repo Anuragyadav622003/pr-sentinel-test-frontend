@@ -28,6 +28,7 @@ import { baseApi } from "@/lib/store/baseApi";
 import { resetGitHubState } from "@/lib/store/githubSlice";
 import { clearStoredUser, getStoredUser, logout } from "@/lib/auth";
 import { llmApi } from "@/lib/api/llm";
+import { FREE_TIER_DAILY_LIMIT } from "@/lib/config";
 import type { LlmConfig, LlmMode, LlmModeStatus, LlmProvider } from "@/lib/api/types";
 
 // ─── Toggle switch ─────────────────────────────────────────────────────────────
@@ -493,7 +494,8 @@ function LlmModelSection() {
 
   const isByok = modeStatus?.llmMode === "BYOK";
   const freeRemaining = modeStatus?.remainingFree;
-  const dailyLimit = 10; // mirrors FREE_REVIEWS_PER_USER_PER_DAY default
+  const dailyLimit = FREE_TIER_DAILY_LIMIT;
+  const used = freeRemaining !== undefined ? Math.max(0, dailyLimit - freeRemaining) : 0;
 
   return (
     <div>
@@ -504,8 +506,8 @@ function LlmModelSection() {
           isByok
             ? "Using your own API key (BYOK). No daily limit."
             : freeRemaining !== undefined
-              ? `Free tier — ${freeRemaining} review${freeRemaining !== 1 ? "s" : ""} remaining today.`
-              : "Free tier active."
+              ? `Free tier — ${freeRemaining} review${freeRemaining !== 1 ? "s" : ""} remaining today (limit: ${dailyLimit}/day).`
+              : `Free tier active (${dailyLimit} reviews/day).`
         }
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -547,7 +549,7 @@ function LlmModelSection() {
           }}>
             <span>Daily free reviews used</span>
             <span style={{ fontFamily: "var(--font-mono)" }}>
-              {dailyLimit - freeRemaining} / {dailyLimit}
+              {used} / {dailyLimit}
             </span>
           </div>
           <div style={{
@@ -558,7 +560,7 @@ function LlmModelSection() {
           }}>
             <div style={{
               height: "100%",
-              width: `${Math.round(((dailyLimit - freeRemaining) / dailyLimit) * 100)}%`,
+              width: `${dailyLimit > 0 ? Math.min(100, Math.round((used / dailyLimit) * 100)) : 0}%`,
               borderRadius: 99,
               background: freeRemaining === 0 ? "var(--danger)" : "var(--accent)",
               transition: "width .3s ease",

@@ -21,3 +21,19 @@ export const APP_URL =
   (process.env.NODE_ENV === "production"
     ? PRODUCTION_APP_URL
     : "http://localhost:3001");
+
+/**
+ * Default number of free reviews allowed per user per day in FREE tier mode.
+ * Configured via NEXT_PUBLIC_FREE_TIER_DAILY_LIMIT or NEXT_PUBLIC_FREE_TIER_REVIEWS env var.
+ */
+export const DEFAULT_FREE_TIER_DAILY_LIMIT = 5;
+
+const rawLimit =
+  process.env.NEXT_PUBLIC_FREE_TIER_DAILY_LIMIT ??
+  process.env.NEXT_PUBLIC_FREE_TIER_REVIEWS;
+
+export const FREE_TIER_DAILY_LIMIT =
+  rawLimit && !isNaN(Number(rawLimit)) && Number(rawLimit) > 0
+    ? Number(rawLimit)
+    : DEFAULT_FREE_TIER_DAILY_LIMIT;
+

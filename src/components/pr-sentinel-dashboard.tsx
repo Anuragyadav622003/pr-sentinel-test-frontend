@@ -21,6 +21,7 @@ import { SkeletonStatCards, SkeletonRows, ErrorState, EmptyState } from "@/compo
 import { UsageMeter } from "@/components/ui/progress";
 import { useDashboardStats } from "@/lib/api/hooks";
 import { llmApi } from "@/lib/api/llm";
+import { FREE_TIER_DAILY_LIMIT } from "@/lib/config";
 import { getDisplayName, getStoredUser } from "@/lib/auth";
 import type { LlmModeStatus, PullRequest } from "@/lib/api/types";
 
@@ -168,9 +169,9 @@ function QuotaCard() {
   }, []);
 
   const isByok = status?.llmMode === "BYOK";
-  const dailyLimit = 5;
+  const dailyLimit = FREE_TIER_DAILY_LIMIT;
   const remaining  = status?.remainingFree ?? dailyLimit;
-  const used = dailyLimit - remaining;
+  const used = Math.max(0, dailyLimit - remaining);
 
   return (
     <div className="card" style={{ display: "flex", alignItems: "center", gap: "var(--sp-4)", flexWrap: "wrap" }}>
