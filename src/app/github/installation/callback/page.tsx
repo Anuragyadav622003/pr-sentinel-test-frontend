@@ -122,7 +122,7 @@ function CallbackContent() {
         </div>
         <div className="callback-actions">
           <button
-            className="primary-button"
+            className="btn btn-primary"
             onClick={() => router.replace("/dashboard/github")}
           >
             Go to GitHub settings
@@ -141,16 +141,16 @@ function CallbackContent() {
       <h1>Unable to connect GitHub</h1>
       <p>{errorMsg || "The installation could not be verified."}</p>
       <div className="callback-actions">
-        <Link className="primary-button" href="/dashboard/github">
+        <Link className="btn btn-primary" href="/dashboard/github">
           <GitBranch size={16} />
           Try again
         </Link>
         {installUrl && (
-          <a className="secondary-button" href={installUrl}>
+          <a className="btn btn-secondary" href={installUrl}>
             Open GitHub App
           </a>
         )}
-        <Link className="secondary-button" href="/dashboard">
+        <Link className="btn btn-secondary" href="/dashboard">
           Back to dashboard
         </Link>
       </div>

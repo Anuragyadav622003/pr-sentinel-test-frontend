@@ -1,15 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import {
   ArrowUpRight,
   CheckCircle2,
+  GitBranch,
   Loader2,
   RefreshCw,
   Settings2,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard-shell";
 import { ApiError } from "@/lib/api/client";
-import { EmptyState, ErrorState, SkeletonRows } from "@/components/ui/states";
+import { EmptyState, ErrorState } from "@/components/ui/states";
 import { useGitHubConnection } from "@/lib/store";
 
 function Github({ size = 24, ...props }: { size?: number; [key: string]: unknown }) {
@@ -51,62 +53,65 @@ export default function GitHubIntegration() {
 
   return (
     <DashboardShell title="GitHub" eyebrow="INTEGRATION">
-      <div className="data-header">
-        <div>
-          <h1 className="text-balance">GitHub integration</h1>
-          <p className="text-pretty">
-            PR Sentinel reviews pull requests through a single GitHub App. Install it
-            on your account or organization and choose which repositories it can access.
-          </p>
-        </div>
-        {github.connected && (
-          <div className="header-actions">
-            <button
-              className="secondary-button"
-              onClick={() => github.refresh()}
-              disabled={github.isFetching}
-            >
-              <RefreshCw size={15} />
-              Refresh
-            </button>
+      <div className="page-stack">
+        <div className="page-header">
+          <div>
+            <h1>GitHub integration</h1>
+            <p>
+              PR Sentinel reviews pull requests through a single GitHub App. Install it
+              on your account or organization and choose which repositories it can access.
+            </p>
           </div>
+          {github.connected && (
+            <div className="page-header-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => github.refresh()}
+                disabled={github.isFetching || isBusy}
+                aria-label="Refresh GitHub connection status"
+              >
+                <RefreshCw size={14} className={github.isFetching ? "spin" : undefined} />
+                Refresh
+              </button>
+            </div>
+          )}
+        </div>
+
+        {github.isChecking ? (
+          <section className="github-hero">
+            <div className="hero-icon">
+              <Loader2 size={24} className="spin" />
+            </div>
+            <div>
+              <h2>Checking GitHub connection…</h2>
+              <p>Verifying your installation status with GitHub.</p>
+            </div>
+          </section>
+        ) : github.status === "error" ? (
+          <ErrorState
+            error={
+              typeof github.error === "string"
+                ? new ApiError(0, github.error)
+                : github.error
+                  ? new ApiError(
+                      github.error.status,
+                      github.error.message,
+                      github.error.details,
+                    )
+                  : new ApiError(0, "Unable to connect GitHub")
+            }
+            onRetry={() => {
+              github.dismissError();
+              github.refresh();
+            }}
+            resourceLabel="GitHub connection"
+          />
+        ) : github.connected ? (
+          <ConnectedView github={github} isBusy={isBusy} />
+        ) : (
+          <NotConnectedView github={github} isBusy={isBusy} />
         )}
       </div>
-
-      {github.isChecking ? (
-        <section className="github-hero">
-          <div className="hero-icon">
-            <Loader2 size={22} className="spin" />
-          </div>
-          <div>
-            <h2>Checking GitHub connection…</h2>
-            <p className="text-pretty">Verifying your installation with the backend.</p>
-          </div>
-        </section>
-      ) : github.status === "error" ? (
-        <ErrorState
-          error={
-            typeof github.error === "string"
-              ? new ApiError(0, github.error)
-              : github.error
-                ? new ApiError(
-                    github.error.status,
-                    github.error.message,
-                    github.error.details,
-                  )
-                : new ApiError(0, "Unable to connect GitHub")
-          }
-          onRetry={() => {
-            github.dismissError();
-            github.refresh();
-          }}
-          resourceLabel="GitHub connection"
-        />
-      ) : github.connected ? (
-        <ConnectedView github={github} isBusy={isBusy} />
-      ) : (
-        <NotConnectedView github={github} isBusy={isBusy} />
-      )}
     </DashboardShell>
   );
 }
@@ -121,11 +126,11 @@ function NotConnectedView({
   return (
     <section className="github-hero">
       <div className="hero-icon">
-        <Github size={22} />
+        <Github size={24} />
       </div>
       <div>
         <h2>Connect PR Sentinel to GitHub</h2>
-        <p className="text-pretty">
+        <p>
           PR Sentinel needs access to your repositories to automatically review pull
           requests as they are opened and updated. You&apos;ll be taken to GitHub to
           install the app and select repositories — PR Sentinel never sees your code
@@ -134,11 +139,11 @@ function NotConnectedView({
       </div>
       <div className="button-row">
         <button
-          className="primary-button"
+          className="btn btn-primary"
           onClick={() => void github.startConnect()}
           disabled={isBusy}
         >
-          {isBusy ? <Loader2 size={16} className="spin" /> : <Github size={16} />}
+          {isBusy ? <Loader2 size={15} className="spin" /> : <Github size={15} />}
           {isBusy ? "Connecting GitHub…" : "Install PR Sentinel GitHub App"}
         </button>
       </div>
@@ -155,14 +160,16 @@ function ConnectedView({
 }) {
   return (
     <>
-      <section className="detail-card" style={{ borderColor: "#70d9a544" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+      <section className="detail-card" style={{ borderColor: "color-mix(in srgb, var(--success) 35%, var(--border))" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)" }}>
           {isBusy ? (
-            <Loader2 size={18} className="spin" color="var(--success)" />
+            <Loader2 size={20} className="spin" style={{ color: "var(--success)" }} />
           ) : (
-            <CheckCircle2 size={18} color="var(--success)" />
+            <CheckCircle2 size={20} style={{ color: "var(--success)" }} />
           )}
-          <h2 style={{ margin: 0 }}>{statusLabel(github.status)}</h2>
+          <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 650, margin: 0 }}>
+            {statusLabel(github.status)}
+          </h2>
         </div>
         <p className="card-sub">
           {github.status === "syncing"
@@ -187,19 +194,19 @@ function ConnectedView({
         </div>
         <div className="button-row">
           <button
-            className="secondary-button"
+            className="btn btn-secondary"
             onClick={() => void github.startConnect()}
             disabled={isBusy}
           >
-            <Settings2 size={15} />
+            <Settings2 size={14} />
             Manage GitHub App
           </button>
           <button
-            className="secondary-button"
+            className="btn btn-secondary"
             onClick={() => void github.syncRepositories()}
             disabled={isBusy}
           >
-            <RefreshCw size={15} />
+            <RefreshCw size={14} className={isBusy ? "spin" : undefined} />
             Sync repositories
           </button>
         </div>
@@ -211,40 +218,47 @@ function ConnectedView({
           <p>Repositories PR Sentinel can access through this installation.</p>
         </div>
         <div className="panel-scroll-body">
-        {github.repositories.length === 0 ? (
-          <EmptyState
-            title="No repositories selected"
-            body="Manage the GitHub App to grant PR Sentinel access to one or more repositories."
-            action={{
-              label: "Manage GitHub App",
-              onClick: () => void github.startConnect(),
-            }}
-          />
-        ) : (
-          <div className="file-list">
-            {github.repositories.map((repo) => (
-              <div className="file-row" key={repo.id}>
-                <span className="file-name" title={repo.fullName}>
-                  {repo.fullName}
-                </span>
-                {repo.htmlUrl && (
-                  <a
-                    className="link-button"
-                    href={repo.htmlUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Open ${repo.fullName} on GitHub`}
-                  >
-                    <ArrowUpRight size={14} />
-                  </a>
-                )}
-                <span className={`status-badge ${repo.isActive ? "success" : "neutral"}`}>
-                  {repo.isActive ? "Active" : "Inactive"}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+          {github.repositories.length === 0 ? (
+            <EmptyState
+              icon={<GitBranch size={22} />}
+              title="No repositories selected"
+              body="Manage the GitHub App to grant PR Sentinel access to one or more repositories."
+              actions={[
+                {
+                  label: "Manage GitHub App",
+                  onClick: () => void github.startConnect(),
+                },
+              ]}
+              compact
+            />
+          ) : (
+            <div className="file-list">
+              {github.repositories.map((repo) => (
+                <div className="file-row" key={repo.id}>
+                  <div className="file-row-left">
+                    <GitBranch size={15} style={{ color: "var(--accent)", flexShrink: 0 }} aria-hidden />
+                    <span className="file-name" title={repo.fullName}>
+                      {repo.fullName}
+                    </span>
+                    {repo.htmlUrl && (
+                      <a
+                        className="link-button"
+                        href={repo.htmlUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${repo.fullName} on GitHub`}
+                      >
+                        <ArrowUpRight size={14} />
+                      </a>
+                    )}
+                  </div>
+                  <span className={`status-badge ${repo.isActive ? "success" : "neutral"}`}>
+                    {repo.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>
