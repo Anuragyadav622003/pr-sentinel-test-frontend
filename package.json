@@ -4,14 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start -p 3000 -H 0.0.0.0",
     "lint": "eslint"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
     "lucide-react": "^1.30.0",
-    "next": "16.3.0",
+    "next": "16.2.12",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-redux": "^9.3.0",
@@ -23,7 +23,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
+    "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
