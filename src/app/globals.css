@@ -180,6 +180,17 @@ body {
 h1,h2,h3,h4,h5,h6 { margin: 0; font-weight: 650; letter-spacing: -.02em; line-height: var(--leading-tight); }
 p { margin: 0; }
 button, input, textarea, select { font: inherit; color: inherit; }
+select {
+  color-scheme: dark;
+  color: var(--text);
+  background-color: var(--surface);
+}
+select option, select optgroup {
+  color: var(--text);
+  background-color: var(--surface-overlay);
+}
+.light-mode select { color-scheme: light; }
+.light-mode select option, .light-mode select optgroup { color: var(--text); background-color: var(--surface); }
 
 * { box-sizing: border-box; }
 html { background: var(--bg); scrollbar-width: none; }
@@ -954,7 +965,7 @@ img, svg { display: block; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SURFACE / CARDS
-   ═══════════════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════════════════════�� */
 .card {
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -1094,7 +1105,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FILTER BAR
-   ═══════════════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════════════════════�� */
 .filter-bar { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin-bottom: var(--sp-4); }
 .filter-input {
   height: 34px;
@@ -1115,7 +1126,21 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
   background: var(--surface); color: var(--text-secondary);
   font-size: var(--text-sm);
 }
-.filter-select-wrap select { border: 0; background: transparent; color: var(--text); outline: none; cursor: pointer; }
+.filter-select-wrap select {
+  min-width: 128px;
+  height: 32px;
+  padding: 0 24px 0 2px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background-color: transparent;
+  color: var(--text);
+  color-scheme: dark;
+  outline: none;
+  cursor: pointer;
+}
+.light-mode .filter-select-wrap select { color-scheme: light; }
+.provider-form select { color-scheme: dark; }
+.light-mode .provider-form select { color-scheme: light; }
 .results-count { margin-left: auto; color: var(--text-tertiary); font-size: var(--text-sm); }
 
 /* ═══════════════════════════════════════════════════════════════════════════

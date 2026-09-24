@@ -14,10 +14,36 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "PR Sentinel — Engineering intelligence",
-  description: "Prioritize pull request reviews with risk-aware engineering intelligence.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "PR Sentinel | AI-powered pull request reviews",
+    template: "%s | PR Sentinel",
+  },
+  description: "PR Sentinel helps engineering teams review pull requests faster with AI-powered risk analysis, actionable findings, and deployment-aware insights.",
   applicationName: "PR Sentinel",
+  keywords: ["pull request review", "code review", "AI code review", "GitHub reviews", "developer productivity"],
+  authors: [{ name: "PR Sentinel" }],
+  creator: "PR Sentinel",
+  publisher: "PR Sentinel",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: "PR Sentinel",
+    title: "PR Sentinel | AI-powered pull request reviews",
+    description: "Review pull requests with clear, risk-aware engineering intelligence.",
+    images: [{ url: "/logo.png", width: 512, height: 512, alt: "PR Sentinel" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "PR Sentinel | AI-powered pull request reviews",
+    description: "AI-powered pull request reviews with actionable findings.",
+    images: ["/logo.png"],
+  },
+  robots: { index: true, follow: true },
   icons: {
     icon: [{ url: "/pr-sentinel-mark.svg", type: "image/svg+xml" }],
     apple: "/pr-sentinel-mark.svg",
