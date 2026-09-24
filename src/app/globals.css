@@ -1730,6 +1730,39 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .settings-section-body  { padding: var(--sp-5); }
 .settings-card { padding: var(--sp-5); }
 .settings-card > :first-child { margin-bottom: var(--sp-5) !important; }
+.danger-zone {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--danger) 4%, var(--surface));
+  box-shadow: var(--shadow-sm);
+}
+.danger-zone-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 50px;
+  padding: 0 var(--sp-5);
+  color: var(--danger);
+  border-bottom: 1px solid color-mix(in srgb, var(--danger) 16%, transparent);
+}
+.danger-zone-header h2 { margin: 0; font-size: 14px; font-weight: 650; }
+.danger-zone-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-5);
+}
+.danger-zone-copy { min-width: 0; }
+.danger-zone-copy strong { display: block; line-height: var(--leading-snug); }
+.danger-zone-copy small { display: block; margin-top: var(--sp-1); color: var(--text-secondary); line-height: var(--leading-snug); }
+.danger-zone-button { min-width: 138px; color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+.danger-zone-button:not(:disabled):hover { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+@media (max-width: 560px) {
+  .danger-zone-content { align-items: stretch; flex-direction: column; gap: var(--sp-4); }
+  .danger-zone-button { width: 100%; }
+}
 .setting-row {
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-6);
   padding: var(--sp-4) 0 0; border-top: 1px solid var(--border-subtle);
