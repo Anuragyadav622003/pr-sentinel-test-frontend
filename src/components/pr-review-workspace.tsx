@@ -169,8 +169,8 @@ export default function PrReviewWorkspace({ pullRequestId }: { pullRequestId: st
   const isFocusLayout = activeTab === "diff" || activeTab === "chat";
 
   const review = pullRequest?.review ?? null;
-  const comments = review?.comments ?? [];
-  const files = pullRequest?.files ?? [];
+  const comments = useMemo(() => review?.comments ?? [], [review?.comments]);
+  const files = useMemo(() => pullRequest?.files ?? [], [pullRequest?.files]);
 
   const selectedMeta = useMemo(
     () => files.find((f) => f.id === selectedFileId) ?? null,
