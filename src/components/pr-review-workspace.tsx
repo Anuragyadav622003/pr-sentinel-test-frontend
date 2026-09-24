@@ -128,9 +128,9 @@ function CommentCard({
         {comment.severity && <SeverityBadge severity={comment.severity} />}
         {comment.category && <span className="comment-cat">{comment.category}</span>}
         {onJump && comment.filePath && (
-          <button type="button" className="link-button" onClick={onJump} style={{ marginLeft: "auto" }}>
-            View in diff
-          </button>
+<button type="button" className="link-button comment-view-action" onClick={onJump}>
+              View in diff
+            </button>
         )}
       </div>
       {(comment.filePath || comment.lineNumber != null) && (
