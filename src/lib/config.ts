@@ -28,7 +28,7 @@ export const APP_URL =
  * or NEXT_PUBLIC_FREE_TIER_REVIEWS. The fallback is only used when no valid
  * public environment variable is available at build time.
  */
-export const DEFAULT_FREE_TIER_DAILY_LIMIT = 5;
+export const DEFAULT_FREE_TIER_DAILY_LIMIT = 10;
 
 const configuredFreeTierLimit =
   process.env.NEXT_PUBLIC_FREE_TIER_DAILY_LIMIT ??
