@@ -1097,7 +1097,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    EMPTY / ERROR / LOADING STATES
-   ═══════════════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════��════════════════ */
 .state-wrap {
   display: flex;
   flex-direction: column;
@@ -1178,7 +1178,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .usage-row { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-secondary); }
 .usage-row strong { font-family: var(--font-mono); color: var(--text); }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═════════════════════════════════════��═════════════════════════════════════
    TABS
    ═══════════════════════════════════════════════════════════════════════ */
 .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); overflow-x: auto; }
@@ -1215,7 +1215,43 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
   grid-template-columns: minmax(0,1fr) 300px;
   gap: var(--sp-5);
   align-items: start;
-}
+  }
+  .review-page-title {
+  align-items: flex-end;
+  gap: var(--sp-6);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+  }
+  .review-page-title h1 { font-size: clamp(22px, 3vw, 30px); letter-spacing: -.04em; }
+  .review-page-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: var(--sp-5);
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-raised);
+  overflow-x: auto;
+  }
+  .review-page-tabs .review-detail-tab { flex: 0 0 auto; min-height: 36px; border-radius: var(--r-md); }
+  .review-page-tabs .review-detail-tab.active { background: var(--surface); box-shadow: var(--shadow-sm); }
+  .review-sidebar { display: flex; flex-direction: column; gap: var(--sp-3); position: sticky; top: var(--sp-5); }
+  .ai-chat-card { border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface) 72%); }
+  .ai-summary-card { border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface) 72%); }
+  .ai-summary-card .review-summary { color: var(--text); font-size: var(--text-md); line-height: var(--leading-relaxed); }
+  .ai-summary-card .card-sub, .ai-chat-card p { color: var(--text-secondary) !important; }
+  .review-sidebar .detail-card { padding: var(--sp-5); }
+  .review-sidebar .status-badge { align-self: stretch; justify-content: center; }
+  @media (max-width: 1100px) {
+    .review-sidebar { position: static; }
+  }
+  @media (max-width: 640px) {
+    .review-page-title { align-items: flex-start; flex-direction: column; }
+    .review-page-title > div:last-child { width: 100%; }
+    .review-page-title > div:last-child button { width: 100%; justify-content: center; }
+    .review-page-tabs { margin-inline: -4px; }
+  }
 .detail-sidebar { display: flex; flex-direction: column; gap: var(--sp-3); }
 .detail-header { margin-bottom: var(--sp-5); }
 .detail-kicker { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 11px; margin-bottom: var(--sp-2); }

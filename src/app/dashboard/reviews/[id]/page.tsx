@@ -201,7 +201,7 @@ function ReviewSidebar({
       </div>
 
       {/* AI Chat shortcut */}
-      <div className="detail-card" style={{ borderColor: "#61d8c733", background: "linear-gradient(115deg, #11252a, #111925 70%)" }}>
+      <div className="detail-card ai-chat-card">
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <span
             style={{
@@ -362,11 +362,7 @@ function OverviewTab({
 
       {/* AI Summary */}
       <div
-        className="detail-card"
-        style={{
-          borderColor: "#61d8c733",
-          background: "linear-gradient(115deg, #11252a, #111925 70%)",
-        }}
+        className="detail-card ai-summary-card"
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span
@@ -733,7 +729,7 @@ export default function ReviewDetailPage() {
       </div>
 
       {/* Title row */}
-      <div className="detail-title-row" style={{ marginBottom: 24 }}>
+      <div className="detail-title-row review-page-title">
         <div>
           <p className="detail-kicker">
             <Sparkles size={11} style={{ display: "inline", marginRight: 4 }} />
@@ -764,7 +760,7 @@ export default function ReviewDetailPage() {
         {/* Left: tabs + content */}
         <div>
           {/* Tabs */}
-          <nav className="review-detail-tabs" aria-label="Review sections">
+          <nav className="review-detail-tabs review-page-tabs" aria-label="Review sections">
             <button
               className={`review-detail-tab${activeTab === "overview" ? " active" : ""}`}
               onClick={() => setActiveTab("overview")}
