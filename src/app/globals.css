@@ -21,6 +21,9 @@
   --text-secondary:#8fa4bc;
   --text-tertiary: #5a7290;
   --text-inverse:  #090d13;
+  --foreground:    var(--text);
+  --background:    var(--bg);
+  --muted:         var(--text-tertiary);
 
   /* ── Accent / brand ── */
   --accent:        #3dd9c8;
@@ -626,7 +629,7 @@ img, svg { display: block; }
 /* ═══════════════════════════════════════════════════════════════════════════
    COMMON LAYOUT UTILITIES
    ═══════════════════════════════════════════════════════════════════════ */
-  .page-stack   { display: flex; flex-direction: column; gap: var(--sp-5); }
+  .page-stack   { display: flex; flex-direction: column; gap: var(--sp-6); }
   .row          { display: flex; align-items: center; gap: var(--sp-3); }
   .page-stack > *, .content-wrap > * { min-width: 0; }
   .panel, .card, .detail-card, .github-hero, .panel-scroll-card { box-sizing: border-box; }
@@ -960,9 +963,12 @@ img, svg { display: block; }
 }
 .stats-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 .stats-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-.stats-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
 
-.stat-card {
+  .stat-card {
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   background: var(--surface);
@@ -1722,10 +1728,15 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .settings-section-title { font-size: var(--text-md); font-weight: 650; }
 .settings-section-sub   { color: var(--text-tertiary); font-size: var(--text-xs); margin-top: 2px; }
 .settings-section-body  { padding: var(--sp-5); }
+.settings-card { padding: var(--sp-5); }
+.settings-card > :first-child { margin-bottom: var(--sp-5) !important; }
 .setting-row {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
-  padding-top: var(--sp-4); border-top: 1px solid var(--border-subtle);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-6);
+  padding: var(--sp-4) 0 0; border-top: 1px solid var(--border-subtle);
 }
+.setting-row > span { min-width: 0; }
+.setting-row strong { display: block; line-height: var(--leading-snug); }
+.setting-row small { display: block; margin-top: var(--sp-1); color: var(--text-secondary); line-height: var(--leading-snug); }
 .setting-row:first-child { border-top: 0; padding-top: 0; }
 .setting-label  { display: flex; flex-direction: column; gap: var(--sp-1); }
 .setting-label strong { font-size: var(--text-sm); font-weight: 600; }
