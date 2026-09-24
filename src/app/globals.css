@@ -1097,7 +1097,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    EMPTY / ERROR / LOADING STATES
-   ══════════════════════════════════════════════════════��════════════════ */
+   ══════════════════════════════════════════════════════���════════════════ */
 .state-wrap {
   display: flex;
   flex-direction: column;
@@ -1178,7 +1178,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .usage-row { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-secondary); }
 .usage-row strong { font-family: var(--font-mono); color: var(--text); }
 
-/* ═════════════════════════════════════��═════════════════════════════════════
+/* ════════════════════════════════════����═════════════════════════════════════
    TABS
    ═══════════════════════════════════════════════════════════════════════ */
 .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); overflow-x: auto; }
@@ -1234,8 +1234,39 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
   background: var(--surface-raised);
   overflow-x: auto;
   }
-  .review-page-tabs .review-detail-tab { flex: 0 0 auto; min-height: 36px; border-radius: var(--r-md); }
-  .review-page-tabs .review-detail-tab.active { background: var(--surface); box-shadow: var(--shadow-sm); }
+  .review-page-tabs .review-detail-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 36px;
+  min-width: 112px;
+  gap: var(--sp-2);
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast), box-shadow var(--dur-fast);
+  }
+  .review-page-tabs .review-detail-tab:hover { color: var(--text); background: var(--surface); }
+  .review-page-tabs .review-detail-tab.active { color: var(--text); background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .review-page-tabs .review-detail-tab .tab-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--r-full);
+  background: var(--surface-raised);
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  }
+  .review-page-tabs .review-detail-tab.active .tab-count { background: var(--accent-dim); color: var(--accent); }
   .review-sidebar { display: flex; flex-direction: column; gap: var(--sp-3); position: sticky; top: var(--sp-5); }
   .ai-chat-card { border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface) 72%); }
   .ai-summary-card { border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface) 72%); }
@@ -1251,6 +1282,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
     .review-page-title > div:last-child { width: 100%; }
     .review-page-title > div:last-child button { width: 100%; justify-content: center; }
     .review-page-tabs { margin-inline: -4px; }
+    .review-page-tabs .review-detail-tab { min-width: 0; flex: 1 0 auto; padding-inline: 11px; }
   }
 .detail-sidebar { display: flex; flex-direction: column; gap: var(--sp-3); }
 .detail-header { margin-bottom: var(--sp-5); }
