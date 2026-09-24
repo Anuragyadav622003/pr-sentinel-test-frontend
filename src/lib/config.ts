@@ -24,16 +24,21 @@ export const APP_URL =
 
 /**
  * Default number of free reviews allowed per user per day in FREE tier mode.
- * Configured via NEXT_PUBLIC_FREE_TIER_DAILY_LIMIT or NEXT_PUBLIC_FREE_TIER_REVIEWS env var.
+ * Configured via NEXT_PUBLIC_FREE_TIER_DAILY_LIMIT, NEXT_PUBLIC_FREE_TIER_LIMIT,
+ * or NEXT_PUBLIC_FREE_TIER_REVIEWS. The fallback is only used when no valid
+ * public environment variable is available at build time.
  */
 export const DEFAULT_FREE_TIER_DAILY_LIMIT = 5;
 
-const rawLimit =
+const configuredFreeTierLimit =
   process.env.NEXT_PUBLIC_FREE_TIER_DAILY_LIMIT ??
+  process.env.NEXT_PUBLIC_FREE_TIER_LIMIT ??
   process.env.NEXT_PUBLIC_FREE_TIER_REVIEWS;
 
+const parsedFreeTierLimit = Number(configuredFreeTierLimit);
+
 export const FREE_TIER_DAILY_LIMIT =
-  rawLimit && !isNaN(Number(rawLimit)) && Number(rawLimit) > 0
-    ? Number(rawLimit)
+  Number.isFinite(parsedFreeTierLimit) && parsedFreeTierLimit > 0
+    ? Math.floor(parsedFreeTierLimit)
     : DEFAULT_FREE_TIER_DAILY_LIMIT;
 

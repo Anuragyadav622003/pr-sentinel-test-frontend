@@ -92,7 +92,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="workspace-panel" style={{ marginBottom: 16 }}>
+    <div className="workspace-panel settings-card" style={{ marginBottom: 16 }}>
       <div
         style={{
           display: "flex",
