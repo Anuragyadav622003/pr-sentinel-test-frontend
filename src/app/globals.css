@@ -929,6 +929,29 @@ img, svg { display: block; }
 .primary-button { background: var(--accent); color: var(--text-inverse); }
 .secondary-button { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border); }
 
+/* Shared button layout guardrails: controls stay readable and never collide. */
+.btn, .primary-button, .secondary-button, .link-btn, .link-button {
+  flex: 0 0 auto;
+  min-width: 0;
+  line-height: 1;
+  text-align: center;
+}
+.btn svg, .primary-button svg, .secondary-button svg, .link-btn svg, .link-button svg { flex: 0 0 auto; }
+.header-actions, .page-header-actions, .button-row, .provider-actions, .pr-workspace-toolbar, .pr-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.header-actions > *, .page-header-actions > *, .button-row > *, .provider-actions > *, .pr-workspace-toolbar > *, .pr-quick-actions > * { max-width: 100%; }
+@media (max-width: 640px) {
+  .header-actions, .page-header-actions, .button-row, .provider-actions, .pr-workspace-toolbar, .pr-quick-actions { gap: var(--sp-2); }
+  .header-actions > .btn, .page-header-actions > .btn { flex: 1 1 auto; }
+  .pr-workspace-toolbar { align-items: stretch; }
+  .pr-workspace-toolbar > .secondary-button { flex: 1 1 100%; }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    SURFACE / CARDS
    ═══════════════════════════════════════════════════════════════════════ */
@@ -1700,7 +1723,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 }
 .github-btn:hover { background: var(--surface-overlay); border-color: var(--border-strong); }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════��════════════════
    REPOSITORY CARDS
    ═══════════════════════════════════════════════════════════════════════ */
 .repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: var(--sp-4); }
@@ -1722,7 +1745,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .repo-stat span   { color: var(--text-tertiary); font-size: 10px; }
 .repo-stat strong { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: 700; }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════��══════════════
    GITHUB INTEGRATION PAGE
    ═══════════════════════════════════════════════════════════════════════ */
 .gh-hero {
@@ -1890,7 +1913,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 }
 .toggle-switch[aria-checked="true"] .toggle-thumb { transform: translateX(18px); background: var(--text-inverse); }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════════���══
    POPOVER / MENU
    ═══════════════════════════════════════════════════════════════════════ */
 .popover {
