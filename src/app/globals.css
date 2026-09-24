@@ -678,11 +678,22 @@ img, svg { display: block; }
     background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
-  .detail-card .card-sub {
-    color: var(--text-secondary);
-    font-size: var(--text-sm);
-    line-height: var(--leading-normal);
+.detail-card .card-sub {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
   }
+  .ai-summary-card {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: linear-gradient(115deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 70%);
+  }
+  .ai-summary-card .review-summary {
+  color: var(--text);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  }
+  .ai-summary-card .card-sub,
+  .ai-summary-card > p:not(.review-summary) { color: var(--text-secondary); }
   .connected-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
