@@ -769,25 +769,25 @@ export default function SettingsPage() {
       </SectionCard>
 
       {/* ── Danger zone ──────────────────────────────────────────── */}
-      <div className="workspace-panel" style={{ borderColor: "#ed879533", background: "#ed87950a" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, color: "var(--danger)", fontSize: 12, fontWeight: 600 }}>
-          <Trash2 size={15} />
-          Danger zone
+      <section className="danger-zone" aria-labelledby="danger-zone-title">
+        <div className="danger-zone-header">
+          <Trash2 size={16} aria-hidden="true" />
+          <h2 id="danger-zone-title">Danger zone</h2>
         </div>
-        <div className="setting-row" style={{ borderTop: "1px solid #ed879533" }}>
-          <span>
+        <div className="danger-zone-content">
+          <div className="danger-zone-copy">
             <strong>Disconnect GitHub</strong>
             <small>Remove the GitHub App installation. Existing review data is retained.</small>
-          </span>
+          </div>
           <button
             disabled={!connected}
-            className="secondary-button"
-            style={{ fontSize: 11, height: 33, color: "var(--danger)", borderColor: "#ed879555", opacity: connected ? 1 : 0.4 }}
+            className="secondary-button danger-zone-button"
+            aria-label="Disconnect GitHub"
           >
             Disconnect
           </button>
         </div>
-      </div>
+      </section>
     </DashboardShell>
   );
 }
