@@ -579,11 +579,7 @@ function OverviewPanel({
       )}
 
       <div
-        className="detail-card"
-        style={{
-          borderColor: "#61d8c733",
-          background: "linear-gradient(115deg, #11252a, #111925 70%)",
-        }}
+        className="detail-card ai-summary-card"
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span className="ai-icon">
