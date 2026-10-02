@@ -234,6 +234,23 @@ export default function PrReviewWorkspace({ pullRequestId }: { pullRequestId: st
     [files],
   );
 
+  useEffect(() => {
+    function handleDiffShortcut(event: KeyboardEvent) {
+      if (activeTab !== "diff" || files.length < 2 || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
+      if (event.key !== "j" && event.key !== "k") return;
+      event.preventDefault();
+      const currentIndex = Math.max(0, files.findIndex((file) => file.id === selectedFileId));
+      const nextIndex = event.key === "j"
+        ? Math.min(files.length - 1, currentIndex + 1)
+        : Math.max(0, currentIndex - 1);
+      setSelectedFileId(files[nextIndex]?.id ?? null);
+    }
+    window.addEventListener("keydown", handleDiffShortcut);
+    return () => window.removeEventListener("keydown", handleDiffShortcut);
+  }, [activeTab, files, selectedFileId]);
+
   async function handleRetryReview() {
     if (!review) return;
     setRetrying(true);
@@ -376,8 +393,11 @@ export default function PrReviewWorkspace({ pullRequestId }: { pullRequestId: st
                     >
                       <div className="diff-file-list-header">
                         <strong>Files changed</strong>
-                        <span>{files.length}</span>
+                        <span className="diff-file-count">{files.length}</span>
                       </div>
+                      {files.length > 1 && (
+                        <p className="diff-key-hint">Use <kbd>J</kbd> / <kbd>K</kbd> to move between files</p>
+                      )}
                       {files.length === 0 ? (
                         <div className="diff-empty">No files changed</div>
                       ) : (
@@ -386,6 +406,7 @@ export default function PrReviewWorkspace({ pullRequestId }: { pullRequestId: st
                             key={file.id}
                             type="button"
                             className={`diff-file-item${selectedFileId === file.id ? " active" : ""}`}
+                            aria-current={selectedFileId === file.id ? "true" : undefined}
                             onClick={() => setSelectedFileId(file.id)}
                           >
                             <span className="diff-file-name" title={file.filename}>
