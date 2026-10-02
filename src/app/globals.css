@@ -1103,7 +1103,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .risk-chip.low      { background: var(--sev-low-dim);      color: var(--sev-low); }
 .risk-chip.clean    { background: var(--success-dim);      color: var(--success); }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════���═══════════════════════════════════════════
    FILTER BAR
    ══════════════════════════════════════════════════════════════════════�� */
 .filter-bar { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin-bottom: var(--sp-4); }
@@ -1564,6 +1564,26 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 }
 .diff-empty { padding: var(--sp-8) var(--sp-5); text-align: center; color: var(--text-tertiary); font-size: var(--text-sm); }
 .diff-empty small { display: block; margin-top: var(--sp-2); font-size: 11px; }
+
+/* Keep the code surface and change markers readable against the light palette. */
+.light-mode .diff-layout,
+.light-mode .diff-panel { background: var(--surface); }
+.light-mode .diff-gutter,
+.light-mode .diff-row-ctx .diff-gutter { background: var(--surface-raised); color: var(--text-tertiary); border-right-color: var(--border-subtle); }
+.light-mode .diff-row-add .diff-code { background: rgba(26, 140, 86, .12); }
+.light-mode .diff-row-del .diff-code { background: rgba(198, 45, 58, .12); }
+.light-mode .diff-row-add .diff-gutter-new { background: rgba(26, 140, 86, .18); color: var(--success); }
+.light-mode .diff-row-del .diff-gutter-old { background: rgba(198, 45, 58, .16); color: var(--danger); }
+.light-mode .diff-row-meta { background: var(--bg-subtle); }
+.light-mode .diff-hunk { border-color: var(--border-subtle); color: var(--info); }
+.light-mode .diff-sign.add,
+.light-mode .diff-stat-add,
+.light-mode .diff-chip.add { color: var(--success); }
+.light-mode .diff-sign.del,
+.light-mode .diff-stat-del,
+.light-mode .diff-chip.del { color: var(--danger); }
+.light-mode .diff-chip.add { background: var(--success-dim); }
+.light-mode .diff-chip.del { background: var(--danger-dim); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    AI CHAT
