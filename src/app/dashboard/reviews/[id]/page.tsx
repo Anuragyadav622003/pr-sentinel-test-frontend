@@ -748,7 +748,7 @@ export default function ReviewDetailPage() {
             </span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="review-page-actions">
           <button className="secondary-button" onClick={() => refresh()} aria-label="Refresh">
             <RefreshCw size={14} />
             Refresh

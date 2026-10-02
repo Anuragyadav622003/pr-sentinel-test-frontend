@@ -1103,7 +1103,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .risk-chip.low      { background: var(--sev-low-dim);      color: var(--sev-low); }
 .risk-chip.clean    { background: var(--success-dim);      color: var(--success); }
 
-/* ═══════════════════════════════���������═══════════════════════════════════════════
+/* ═══════════════════════════════�����������═══════════════════════════════════════════
    FILTER BAR
    ═════════════════════════════════════════════════════��═��═��════════════�� */
 .filter-bar { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin-bottom: var(--sp-4); }
@@ -1270,6 +1270,9 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
   padding-bottom: var(--sp-5);
   border-bottom: 1px solid var(--border-subtle);
   }
+  .review-page-title > div:first-child { min-width: 0; }
+  .review-page-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2); flex-wrap: wrap; flex: 0 0 auto; }
+  .review-page-actions .secondary-button { min-width: 104px; justify-content: center; }
   .review-page-title h1 { font-size: clamp(22px, 3vw, 30px); letter-spacing: -.04em; }
   .review-page-tabs {
   display: flex;
@@ -1337,8 +1340,10 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 
 @media (max-width: 640px) {
   .review-page-title { align-items: flex-start; flex-direction: column; }
-    .review-page-title > div:last-child { width: 100%; }
-    .review-page-title > div:last-child button { width: 100%; justify-content: center; }
+  .review-page-title > div:last-child,
+  .review-page-actions { width: 100%; }
+  .review-page-actions .secondary-button { flex: 1 1 140px; }
+  .review-page-title > div:last-child button { width: 100%; justify-content: center; }
     .review-page-tabs { margin-inline: -4px; }
     .review-page-tabs .review-detail-tab { min-width: 0; flex: 1 0 auto; padding-inline: 11px; }
   }
@@ -1469,7 +1474,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 .findings-file-header:hover { background: var(--surface-overlay); color: var(--text); }
 .findings-file-header code { font-size: 11px; flex: 1; word-break: break-all; }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════���═══════════════════════════════════════════
    DIFF VIEWER
    ════════════════════��══════════════════════════════════════════════════ */
 .diff-layout {
@@ -1897,7 +1902,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CALLBACK / INSTALLATION PAGES
-   ═══════════════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════���═══════════════════ */
 .callback-shell { display: grid; min-height: 100vh; place-items: center; padding: var(--sp-6); background: var(--bg); }
 .callback-card {
   width: min(480px,100%);
@@ -2009,7 +2014,7 @@ table.data-table tbody tr.clickable:hover { background: var(--surface-raised); }
 }
 .toggle-switch[aria-checked="true"] .toggle-thumb { transform: translateX(18px); background: var(--text-inverse); }
 
-/* ════════════════════════════════════════════════════════════════════════���══
+/* ════════════════════���═══════════════════════════════════════════════════���══
    POPOVER / MENU
    ═══════════════════════════════════════════════════════════════════════ */
 .popover {
